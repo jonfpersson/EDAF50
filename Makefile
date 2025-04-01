@@ -1,53 +1,23 @@
-# Define the compiler and the linker. The linker must be defined since
-# the implicit rule for linking uses CC as the linker. g++ can be
-# changed to clang++.
-CXX = g++
-CC  = $(CXX)
+CC := g++
+CFLAGS := -Iinclude -Wall -Wextra -std=c++17
+SRC_DIR := src
+OBJ_DIR := obj
+BIN := app
 
-# Generate dependencies in *.d files
-DEPFLAGS = -MT $@ -MMD -MP -MF $*.d
+SRCS := $(wildcard $(SRC_DIR)/*.cc)
+OBJS := $(patsubst $(SRC_DIR)/%.cc, $(OBJ_DIR)/%.o, $(SRCS))
+MAIN_OBJ := $(OBJ_DIR)/app.o
 
-# Define preprocessor, compiler, and linker flags. Uncomment the # lines
-# if you use clang++ and wish to use libc++ instead of GNU's libstdc++.
-# -g is for debugging.
-CPPFLAGS =  -Iinclude
-CXXFLAGS =  -O2 -Wall -Wextra -pedantic-errors -Wold-style-cast 
-CXXFLAGS += -std=c++11 
-CXXFLAGS += -g
-CXXFLAGS += $(DEPFLAGS)
-LDFLAGS =   -g -Llib
-#CPPFLAGS += -stdlib=libc++
-#CXXFLAGS += -stdlib=libc++
-#LDFLAGS +=  -stdlib=libc++
+$(BIN): $(OBJS)
+	$(CC) $(CFLAGS) $^ -o $@
 
-# Targets
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cc | $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-all: lib/libclientserver.a
-	make -C example
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
 
-# Create the library; ranlib is for Darwin (OS X) and maybe other systems.
-# Doesn't seem to do any damage on other systems.
-
-lib/libclientserver.a: src/connection.o src/server.o
-	mkdir -p lib
-	ar rv lib/libclientserver.a  src/connection.o src/server.o
-	ranlib lib/libclientserver.a
-
-# Phony targets
-.PHONY: all clean distclean
-
-SRC = $(wildcard src/*.cc)
-
-# Standard clean
 clean:
-	-rm $(SRC:.cc=.o) $(PROGS)
+	rm -rf $(OBJ_DIR) $(BIN)
 
-distclean: clean
-	-rm lib/libclientserver.a
-	-rmdir lib
-	-rm $(SRC:.cc=.d) 
-	make -C example distclean
-
-
-# Include the *.d files
--include $(SRC:.cc=.d)
+.PHONY: clean

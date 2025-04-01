@@ -1,4 +1,4 @@
-#include "diskdb.h"
+#include "../include/diskdb.h"
 #include <filesystem>
 #include <fstream>
 
