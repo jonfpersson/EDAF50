@@ -11,12 +11,14 @@ class Newsgroup
 private:
     std::string name;
     std::string id;
+    std::time_t creationDate;
 
 public:
-    Newsgroup(const std::string &name, const std::string &id) : name{name}, id{id} {}
+    Newsgroup(const std::string &name, const std::time_t &creationDate, const std::string &id) : name{name}, creationDate{creationDate}, id{id} {}
 
     const std::string& getName() const { return name; }
     const std::string& getId() const { return id; }
+    const std::time_t& getCreationDate() const { return creationDate; }
 };
 
 #endif
