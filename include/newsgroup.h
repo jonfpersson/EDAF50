@@ -9,14 +9,14 @@
 class Newsgroup
 {
 private:
-    std::string& name;
-    std::string& id;
+    std::string name;
+    std::string id;
 
 public:
-    Newsgroup(std::string &name, std::string &id) : name{name}, id{id} {}
+    Newsgroup(const std::string &name, const std::string &id) : name{name}, id{id} {}
 
-    std::string& getName() const { return name; }
-    std::string& getId() const { return id; }
+    const std::string& getName() const { return name; }
+    const std::string& getId() const { return id; }
 };
 
 #endif

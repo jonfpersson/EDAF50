@@ -6,11 +6,12 @@
 #include <iostream>
 #include "newsgroup.h"
 
-class Database{
+class Database {
+public:
+    virtual ~Database() {}  
 
-    virtual void addNewsGroup(const std::string&);
-    virtual void addArticle(const Article&, const Newsgroup&);
-
+    virtual void addNewsGroup(const Newsgroup&) = 0;  
+    virtual void addArticle(const Article&, const Newsgroup&) = 0;  
 };
 
 #endif
