@@ -2,7 +2,7 @@
 #define MEMDB_H
 #include "database.h"
 #include "article.h"
-class MemoryDB : Database{
+class Diskdb : Database{
     private:
 
     public:
