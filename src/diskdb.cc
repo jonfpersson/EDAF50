@@ -2,6 +2,12 @@
 #include <filesystem>
 #include <fstream>
 
+Diskdb::Diskdb() {
+}
+
+Diskdb::~Diskdb() {
+}
+
 void Diskdb::addNewsGroup(const Newsgroup& newsgroup){
     std::string dir_name = newsgroup.getName() + " - " + newsgroup.getId();
    /* if(std::filesystem::exists(dir_name)){

@@ -1,4 +1,5 @@
 #include "../include/diskdb.h"
+#include "../include/newsgroup.h"
 #include "../include/article.h"
 #include "../include/database.h"
 #include <iostream>

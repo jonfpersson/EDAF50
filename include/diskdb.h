@@ -6,6 +6,8 @@ class Diskdb : public Database{
     private:
 
     public:
+    Diskdb();
+    ~Diskdb();
     void addNewsGroup(const Newsgroup&) override;
     void addArticle(const Article&, const Newsgroup&) override;
 
