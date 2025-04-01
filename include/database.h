@@ -3,12 +3,13 @@
 
 #include "article.h"
 #include <string.h>
-#include<iostream>
+#include <iostream>
+#include "newsgroup.h"
 
 class Database{
 
     virtual void addNewsGroup(const std::string&);
-    virtual void addArticle(const Article&);
+    virtual void addArticle(const Article&, const Newsgroup&);
 
 };
 
