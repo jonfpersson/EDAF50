@@ -24,7 +24,8 @@ int main() {
     // Create Database object and add the newsgroup/article
     Diskdb db;
     db.addNewsGroup(ng);
-    db.addArticle(art, ng);
+    db.addArticle(art, ng.getId());
+    db.getNewsGroups();
 
     return 0;
 }
