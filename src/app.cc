@@ -6,10 +6,10 @@
 
 int main() {
     // Create a Newsgroup
-    Newsgroup ng("Tech News", "001");
+    Newsgroup ng("Tech News", 69, "420");
 
     // Create an Article
-    Article art("AI Advances", "John Doe", "AI is changing the world!", 101);
+    Article art("AI Advances", "John Doe", "AI is changing the world!", 101, "5678");
 
     // Print Newsgroup details
     std::cout << "Newsgroup Created: " << ng.getName() << " (ID: " << ng.getId() << ")\n";
