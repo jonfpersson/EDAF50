@@ -9,7 +9,9 @@ Diskdb::~Diskdb() {
 }
 
 void Diskdb::addNewsGroup(const Newsgroup& newsgroup){
-    std::string dir_name = newsgroup.getName() + " - " + newsgroup.getId();
+    std::string test_dir = "test";
+    std::filesystem::create_directory(test_dir);
+    std::string dir_name = test_dir + "/" + newsgroup.getName() + " - " + newsgroup.getId();
    /* if(std::filesystem::exists(dir_name)){
         std::cout << "Newsgroup already exists!" << std::endl;
         return;
