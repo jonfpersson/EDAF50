@@ -36,12 +36,12 @@ void Diskdb::addNewsGroup(const Newsgroup& newsgroup){
 
 }
 
-void Diskdb::addArticle(const Article& article, const std::string &groupId){
+void Diskdb::addArticle(Article* article,  Newsgroup& newsgroup){
 
     //format for a newgroup (directories)
     // name - id
-    std::string dir_name = test_dir + "/" + groupId;
-    std::string file_name = article.getTitle() + " - " + article.getId();
+    std::string dir_name = test_dir + "/" + newsgroup.getId();
+    std::string file_name = article->getTitle() + " - " + article->getId();
 
     if(std::filesystem::exists(dir_name + "/" + file_name)){
         std::cout << "Article already exists!" << std::endl;
@@ -50,8 +50,8 @@ void Diskdb::addArticle(const Article& article, const std::string &groupId){
     std::ofstream file(dir_name + "/" +file_name);
 
     if (file.is_open()) {
-        file << article.getAuthor() << std::endl;
-        file << article.getText() << std::endl;
+        file << article->getAuthor() << std::endl;
+        file << article->getText() << std::endl;
     
         file.close();
         //cout << "File created successfully." << endl;
@@ -78,21 +78,21 @@ std::vector<Newsgroup> Diskdb::getNewsGroups() {
 }
 
 
-Article& Diskdb::getArticle(const std::string &groupId, const std::string &articleId) {
+Article* Diskdb::getArticle(const std::string &groupId, const std::string &articleId) {
     static Article emptyArticle("", "", "", 0, ""); // placeholder
-    return emptyArticle;
+    return nullptr;
 }
 
-std::vector<Article>& Diskdb::getArticles(const std::string &groupId) {
-    static std::vector<Article> emptyArticles; // placeholder
-    return emptyArticles;
+std::vector<Article*> Diskdb::getArticles(const std::string &groupId) {
+    static std::vector<Article*> emptyArticles; // placeholder
+    return emptyArticles ;
 }
 
-bool& Diskdb::deleteArticle(const std::string &groupId, const std::string &articleId) {
+bool Diskdb::deleteArticle(std::string &newsgroup, const std::string &articleId){
     static bool result = false; // placeholder
     return result;
 }
 
 bool Diskdb::removeNewsGroup(const std::string &groupId){
-    return NULL;
+    return false;
 }

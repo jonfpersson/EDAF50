@@ -15,14 +15,12 @@ private:
     std::string id;
 
 public:
-    Article(const std::string &title, const std::string &author, const std::string &text, const std::time_t publicationDate, const std::string id)
-        : title{title}, author{author}, text{text}, publicationDate{publicationDate}, id{id} {}
-
-    const std::string &getTitle() const { return title; }
-    const std::string &getAuthor() const { return author; }
-    const std::string &getText() const { return text; }
-    const std::time_t &getDate() const { return publicationDate; }
-    const std::string &getId() const { return id; }
+    Article(const std::string &title, const std::string &author, const std::string &text, const std::time_t publicationDate, const std::string id);
+    const std::string &getTitle() const;
+    const std::string &getAuthor() const;
+    const std::string &getText() const;
+    const std::time_t &getDate() const;
+    const std::string &getId() const;
 };
 
 #endif
