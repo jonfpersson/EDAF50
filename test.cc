@@ -1,6 +1,0 @@
-#include <set> 
-
-int main()
-{
-  
-}
