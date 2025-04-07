@@ -7,7 +7,7 @@
 #include <iostream>
 #include <set>
 #include "article.h"
-
+#include <vector>
 
 class Newsgroup
 {
