@@ -36,7 +36,7 @@ void Diskdb::addNewsGroup(const Newsgroup& newsgroup){
 
 }
 
-void Diskdb::addArticle(Article* article,  Newsgroup& newsgroup){
+void Diskdb::addArticle(std::shared_ptr<Article> article,  Newsgroup& newsgroup){
 
     //format for a newgroup (directories)
     // name - id
@@ -79,7 +79,7 @@ std::vector<Newsgroup> Diskdb::getNewsGroups() {
 }
 
 
-Article* Diskdb::getArticle(const std::string &groupId, const std::string &articleId) {
+std::shared_ptr<Article> Diskdb::getArticle(const std::string &groupId, const std::string &articleId) {
     for (auto const& files : std::filesystem::directory_iterator{test_dir + "/" + groupId}) {
         std::string title = files.path().filename();
         if(title.find("-") == std::string::npos || title.substr(title.find("-") + 2) != articleId){
@@ -94,13 +94,13 @@ Article* Diskdb::getArticle(const std::string &groupId, const std::string &artic
         std::string id = title.substr(title.find("-") + 2);
         //get article name from file name
         title = title.substr(0, title.find("-") - 1);
-        return new Article(title, author, text, 0, id);
+        return std::make_shared<Article>(title, author, text, 0, id);
     }
     return nullptr;
 }
 
-std::vector<Article*> Diskdb::getArticles(const std::string &groupId) {
-    std::vector<Article*> articles;    
+std::vector<std::shared_ptr<Article>> Diskdb::getArticles(const std::string &groupId) {
+    std::vector<std::shared_ptr<Article>> articles;    
     for (auto const& files : std::filesystem::directory_iterator{test_dir + "/" + groupId}) {
         std::ifstream article_file(files.path());
         std::string author;
@@ -115,7 +115,7 @@ std::vector<Article*> Diskdb::getArticles(const std::string &groupId) {
         }
         std::string id = title.substr(title.find("-") + 1);
         
-        articles.push_back(new Article(title, author, text, 0, id));
+        articles.push_back(std::make_shared<Article>(title, author, text, 0, id));
 
     }
         

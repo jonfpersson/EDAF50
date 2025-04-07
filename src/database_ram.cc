@@ -2,6 +2,7 @@
 #include "article.h"
 #include <string.h>
 #include <iostream>
+#include <memory>
 
 DatabaseRam::DatabaseRam()
 {
@@ -18,7 +19,7 @@ void DatabaseRam::addNewsGroup(const Newsgroup &newsgroup)
 }
 
 // Handle error if the group does not exist!
-void DatabaseRam::addArticle(Article *article, Newsgroup &newsgroup)
+void DatabaseRam::addArticle(std::shared_ptr<Article>article, Newsgroup &newsgroup)
 {
 
     for (auto it = newsgroups.begin(); it != newsgroups.end(); ++it)
@@ -30,7 +31,7 @@ void DatabaseRam::addArticle(Article *article, Newsgroup &newsgroup)
     }
 };
 
-std::vector<Article *> DatabaseRam::getArticles(const std::string &groupId)
+std::vector<std::shared_ptr<Article>> DatabaseRam::getArticles(const std::string &groupId)
 {
 
     for (auto it = newsgroups.begin(); it != newsgroups.end(); ++it)
@@ -41,7 +42,7 @@ std::vector<Article *> DatabaseRam::getArticles(const std::string &groupId)
         }
     }
 
-    return std::vector<Article *>();
+    return std::vector<std::shared_ptr<Article>>();
 }
 
 std::vector<Newsgroup> DatabaseRam::getNewsGroups()
@@ -49,7 +50,7 @@ std::vector<Newsgroup> DatabaseRam::getNewsGroups()
     return newsgroups;
 };
 
-Article *DatabaseRam::getArticle(const std::string &newsgroupId, const std::string &articleID)
+std::shared_ptr<Article>DatabaseRam::getArticle(const std::string &newsgroupId, const std::string &articleID)
 {
 
     for (auto nit = newsgroups.begin(); nit != newsgroups.end(); ++nit)
@@ -57,7 +58,7 @@ Article *DatabaseRam::getArticle(const std::string &newsgroupId, const std::stri
         if (nit->getId() == newsgroupId)
         {
            
-            for (Article *a : nit->getArticles())
+            for (std::shared_ptr<Article>a : nit->getArticles())
             {
                 if (a->getId() == articleID)
                 {     

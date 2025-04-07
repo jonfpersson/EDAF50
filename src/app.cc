@@ -21,18 +21,18 @@ void testNewsGroup()
     assert(ng.getId() == "ng001");
 
     // Create some articles
-    Article *a1 = new Article("title1", "author1", "text1", now1, "ID1");
-    Article *a2 = new Article("title2", "author2", "text2", now2, "ID2");
+    std::shared_ptr<Article> a1 = std::make_shared<Article>("title1", "author1", "text1", now1, "ID1");
+    std::shared_ptr<Article> a2 = std::make_shared<Article>("title2", "author2", "text2", now2, "ID2");
 
     // Test addArticle
     ng.addArticle(a2);
     ng.addArticle(a1);
-    std::vector<Article *> articles = ng.getArticles();
+    std::vector<std::shared_ptr<Article>> articles = ng.getArticles();
     assert(articles.size() == 2);
 
 
     // Test getArticle
-    Article *fetched = ng.getArticle("ID1");
+    std::shared_ptr<Article>fetched = ng.getArticle("ID1");
     assert(fetched != nullptr);
     assert(fetched->getId() == "ID1");
 
@@ -52,8 +52,6 @@ void testNewsGroup()
 
     std::cout << "Newsgroup tests passed!\n";
 
-    delete a1;
-    delete a2;
 }
 
 void testArticle()
@@ -92,8 +90,8 @@ void testDataBase(Database &db){
     assert(allGroups.size() == 2);
 
     // Create articles
-    Article *a1 = new Article("title1", "author1", "text1", now, "ID1");
-    Article *a2 = new Article("title2", "author2", "text2", now+1, "ID2");
+    std::shared_ptr<Article> a1 = std::make_shared<Article>("title1", "author1", "text1", now, "ID1");
+    std::shared_ptr<Article> a2 = std::make_shared<Article>("title2", "author2", "text2", now + 1, "ID2");
 
     // Add articles to Tech newsgroup
     db.addArticle(a1, ng1);
@@ -104,7 +102,7 @@ void testDataBase(Database &db){
     assert(db.getArticles("ng2").size() == 0); 
 
     // Retrieve an article
-    Article *fetched = db.getArticle("ng1", "ID1");
+    std::shared_ptr<Article>fetched = db.getArticle("ng1", "ID1");
     assert(fetched != nullptr); 
     assert(fetched->getTitle() == "title1");
 
@@ -129,8 +127,6 @@ void testDataBase(Database &db){
 
     std::cout << "All DatabaseRam tests passed!\n";
 
-    delete a1;
-    delete a2;
 }
 
 void testDatabaseRam()

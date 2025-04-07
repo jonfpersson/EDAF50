@@ -9,11 +9,11 @@ const std::string &Newsgroup::getName() const { return name; }
 const std::time_t &Newsgroup::getCreationDate() const { return creationDate; }
 const std::string &Newsgroup::getId() const { return id; }
 
-void Newsgroup::addArticle(Article* article){
+void Newsgroup::addArticle(std::shared_ptr<Article> article){
     articles.push_back(article);
 }
 
-std::vector<Article *> Newsgroup::getArticles() const
+std::vector<std::shared_ptr<Article>> Newsgroup::getArticles() const
 {
     return articles;
 }
@@ -31,7 +31,7 @@ bool Newsgroup::deleteArticle(const std::string &articleId)
     return false;
 }
 
-Article *Newsgroup::getArticle(const std::string &articleId) const
+std::shared_ptr<Article>Newsgroup::getArticle(const std::string &articleId) const
 {
     for (auto it = articles.begin(); it != articles.end(); ++it)
     {
