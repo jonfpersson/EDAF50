@@ -61,6 +61,7 @@ void Diskdb::addArticle(Article* article,  Newsgroup& newsgroup){
 
 }
 
+// detta returnerar egentligen en kopia av vectorn men men
 std::vector<Newsgroup> Diskdb::getNewsGroups() {
     std::vector<Newsgroup> groups;    
     for (auto const& dir_entry : std::filesystem::directory_iterator{test_dir}) {
@@ -79,20 +80,66 @@ std::vector<Newsgroup> Diskdb::getNewsGroups() {
 
 
 Article* Diskdb::getArticle(const std::string &groupId, const std::string &articleId) {
-    static Article emptyArticle("", "", "", 0, ""); // placeholder
+    for (auto const& files : std::filesystem::directory_iterator{test_dir + "/" + groupId}) {
+        std::string title = files.path().filename();
+        if(title.find("-") == std::string::npos || title.substr(title.find("-") + 2) != articleId){
+            continue;
+        }
+        std::ifstream article_file(files.path());
+        std::string author;
+        getline(article_file, author);
+
+        std::string text;
+        getline(article_file, text);
+        std::string id = title.substr(title.find("-") + 2);
+        //get article name from file name
+        title = title.substr(0, title.find("-") - 1);
+        return new Article(title, author, text, 0, id);
+    }
     return nullptr;
 }
 
 std::vector<Article*> Diskdb::getArticles(const std::string &groupId) {
-    static std::vector<Article*> emptyArticles; // placeholder
-    return emptyArticles ;
+    std::vector<Article*> articles;    
+    for (auto const& files : std::filesystem::directory_iterator{test_dir + "/" + groupId}) {
+        std::ifstream article_file(files.path());
+        std::string author;
+        getline(article_file, author);
+
+        std::string text;
+        getline(article_file, text);
+
+        std::string title = files.path().filename();
+        if(title.find("-") == std::string::npos){
+            continue;
+        }
+        std::string id = title.substr(title.find("-") + 1);
+        
+        articles.push_back(new Article(title, author, text, 0, id));
+
+    }
+        
+    return articles;
 }
 
 bool Diskdb::deleteArticle(std::string &newsgroup, const std::string &articleId){
-    static bool result = false; // placeholder
-    return result;
+    std::string dir_name = test_dir + "/" + newsgroup;
+    for (auto const& files : std::filesystem::directory_iterator{dir_name}) {
+        std::string title = files.path().filename();
+        if(title.find("-") == std::string::npos || title.substr(title.find("-") + 2) != articleId){
+            continue;
+        }
+        std::filesystem::remove(files.path());
+        return true;
+    }
+    return false;
 }
 
 bool Diskdb::removeNewsGroup(const std::string &groupId){
+    std::string dir_name = test_dir + "/" + groupId;
+    if(std::filesystem::exists(dir_name)){
+        std::filesystem::remove_all(dir_name);
+        return true;
+    }
     return false;
 }

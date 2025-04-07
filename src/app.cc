@@ -75,10 +75,7 @@ void testArticle()
     std::cout << "All Article tests passed!\n";
 }
 
-void testDatabaseRam()
-{
-    DatabaseRam db;
-
+void testDataBase(Database &db){
     std::time_t now = std::time(nullptr);
 
     // Create newsgroups
@@ -136,25 +133,17 @@ void testDatabaseRam()
     delete a2;
 }
 
-void testDatabaseDisk(){ // TODO /////////////////////////////////
+void testDatabaseRam()
+{
+    DatabaseRam db;
+    testDataBase(db);
+ 
+}
 
-    // Create news group
-    std::time_t now = std::time(nullptr);
-    Newsgroup ng("Tech News", now, "ng001");
+void testDatabaseDisk(){
 
-    //Create article
-    Article *a1 = new Article("title1", "author1", "text1", now, "ID1");
-
-    //Create Database object and add the newsgroup/article
     Diskdb db;
-    db.addNewsGroup(ng);
-    db.addArticle(a1, ng);
-    db.getNewsGroups();
-
-    
-
-    std::cout << "All Disk database tests passed!\n";
-
+    testDataBase(db);
 }
 
 int main()
