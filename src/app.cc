@@ -3,7 +3,7 @@
 #include "newsgroup.h"
 #include "article.h"
 #include "database_ram.h"
-#include "diskdb.h"
+#include "database_disk.h"
 #include <iostream>
 #include <ctime>
 #include <cassert>
@@ -138,7 +138,7 @@ void testDatabaseRam()
 
 void testDatabaseDisk(){
 
-    Diskdb db;
+    DatabaseDisk db;
     testDataBase(db);
 }
 

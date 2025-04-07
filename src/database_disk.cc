@@ -1,16 +1,16 @@
-#include "../include/diskdb.h"
+#include "../include/database_disk.h"
 #include <filesystem>
 #include <fstream>
 #include <istream>
 static std::string test_dir = "test";
 
-Diskdb::Diskdb() {
+DatabaseDisk::DatabaseDisk() {
 }
 
-Diskdb::~Diskdb() {
+DatabaseDisk::~DatabaseDisk() {
 }
 
-void Diskdb::addNewsGroup(const Newsgroup& newsgroup){
+void DatabaseDisk::addNewsGroup(const Newsgroup& newsgroup){
     std::string test_dir = "test";
     std::filesystem::create_directory(test_dir);
     std::string dir_name = test_dir + "/" + newsgroup.getId();
@@ -36,7 +36,7 @@ void Diskdb::addNewsGroup(const Newsgroup& newsgroup){
 
 }
 
-void Diskdb::addArticle(std::shared_ptr<Article> article,  Newsgroup& newsgroup){
+void DatabaseDisk::addArticle(std::shared_ptr<Article> article,  Newsgroup& newsgroup){
 
     //format for a newgroup (directories)
     // name - id
@@ -62,7 +62,7 @@ void Diskdb::addArticle(std::shared_ptr<Article> article,  Newsgroup& newsgroup)
 }
 
 // detta returnerar egentligen en kopia av vectorn men men
-std::vector<Newsgroup> Diskdb::getNewsGroups() {
+std::vector<Newsgroup> DatabaseDisk::getNewsGroups() {
     std::vector<Newsgroup> groups;    
     for (auto const& dir_entry : std::filesystem::directory_iterator{test_dir}) {
         std::ifstream metadata_file(dir_entry.path() / "metadata");
@@ -79,7 +79,7 @@ std::vector<Newsgroup> Diskdb::getNewsGroups() {
 }
 
 
-std::shared_ptr<Article> Diskdb::getArticle(const std::string &groupId, const std::string &articleId) {
+std::shared_ptr<Article> DatabaseDisk::getArticle(const std::string &groupId, const std::string &articleId) {
     for (auto const& files : std::filesystem::directory_iterator{test_dir + "/" + groupId}) {
         std::string title = files.path().filename();
         if(title.find("-") == std::string::npos || title.substr(title.find("-") + 2) != articleId){
@@ -99,7 +99,7 @@ std::shared_ptr<Article> Diskdb::getArticle(const std::string &groupId, const st
     return nullptr;
 }
 
-std::vector<std::shared_ptr<Article>> Diskdb::getArticles(const std::string &groupId) {
+std::vector<std::shared_ptr<Article>> DatabaseDisk::getArticles(const std::string &groupId) {
     std::vector<std::shared_ptr<Article>> articles;    
     for (auto const& files : std::filesystem::directory_iterator{test_dir + "/" + groupId}) {
         std::ifstream article_file(files.path());
@@ -122,7 +122,7 @@ std::vector<std::shared_ptr<Article>> Diskdb::getArticles(const std::string &gro
     return articles;
 }
 
-bool Diskdb::deleteArticle(std::string &newsgroup, const std::string &articleId){
+bool DatabaseDisk::deleteArticle(std::string &newsgroup, const std::string &articleId){
     std::string dir_name = test_dir + "/" + newsgroup;
     for (auto const& files : std::filesystem::directory_iterator{dir_name}) {
         std::string title = files.path().filename();
@@ -135,7 +135,7 @@ bool Diskdb::deleteArticle(std::string &newsgroup, const std::string &articleId)
     return false;
 }
 
-bool Diskdb::removeNewsGroup(const std::string &groupId){
+bool DatabaseDisk::removeNewsGroup(const std::string &groupId){
     std::string dir_name = test_dir + "/" + groupId;
     if(std::filesystem::exists(dir_name)){
         std::filesystem::remove_all(dir_name);

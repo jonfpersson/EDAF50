@@ -2,12 +2,12 @@
 #define MEMDB_H
 #include "database.h"
 #include "article.h"
-class Diskdb : public Database{
+class DatabaseDisk : public Database{
     private:
 
     public:
-    Diskdb();
-    ~Diskdb();
+    DatabaseDisk();
+    ~DatabaseDisk();
     void addNewsGroup(const Newsgroup&) override;
     void addArticle(std::shared_ptr<Article> article,  Newsgroup& newsgroup)override;
     std::vector<Newsgroup > getNewsGroups() override;
