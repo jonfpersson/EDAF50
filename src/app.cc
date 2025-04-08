@@ -7,6 +7,7 @@
 #include <iostream>
 #include <ctime>
 #include <cassert>
+#include "server_handler.h"
 
 void testNewsGroup()
 {
@@ -148,6 +149,10 @@ int main()
     testNewsGroup();
     testDatabaseRam();
     testDatabaseDisk();
+
+    serverHandler serv;
+    char* args[] = {"localhost", "8080"};
+    serv.setup(2, args);
 
     return 0;
 }
