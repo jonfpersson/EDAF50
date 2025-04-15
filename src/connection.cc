@@ -25,9 +25,8 @@
 //
 // ------------------------------------------------------------------
 
-#include "connection.h"
-
-#include "connectionclosedexception.h"
+#include "connection.hh"
+#include "connectionclosedexception.hh"
 
 #include <arpa/inet.h> /* htons() */
 #include <csignal>     /* signal() */

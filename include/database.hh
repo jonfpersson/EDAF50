@@ -1,11 +1,11 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
-#include "article.h"
-#include <string.h>
+#include "article.hh"
+#include "newsgroup.hh"
+#include <string>
 #include <vector>
 #include <iostream>
-#include "newsgroup.h"
 #include <memory>
 
 class Database

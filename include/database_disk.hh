@@ -1,7 +1,7 @@
 #ifndef MEMDB_H
 #define MEMDB_H
-#include "database.h"
-#include "article.h"
+#include "database.hh"
+#include "article.hh"
 class DatabaseDisk : public Database{
     private:
 

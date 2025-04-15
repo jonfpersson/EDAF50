@@ -1,13 +1,17 @@
-
-
-#include "newsgroup.h"
-#include "article.h"
-#include "database_ram.h"
-#include "database_disk.h"
+#include "newsgroup.hh"
+#include "article.hh"
+#include "database_ram.hh"
+#include "database_disk.hh"
+#include "server_handler.hh"
+#include "command_parser.hh"
+#include "commands.hh"
+#include "database.hh"
+#include "utils.hh"
 #include <iostream>
 #include <ctime>
 #include <cassert>
-#include "server_handler.h"
+#include<vector>
+#include<string>
 
 void testNewsGroup()
 {
@@ -31,9 +35,8 @@ void testNewsGroup()
     std::vector<std::shared_ptr<Article>> articles = ng.getArticles();
     assert(articles.size() == 2);
 
-
     // Test getArticle
-    std::shared_ptr<Article>fetched = ng.getArticle("ID1");
+    std::shared_ptr<Article> fetched = ng.getArticle("ID1");
     assert(fetched != nullptr);
     assert(fetched->getId() == "ID1");
 
@@ -52,7 +55,6 @@ void testNewsGroup()
     assert(ng < ng2);
 
     std::cout << "Newsgroup tests passed!\n";
-
 }
 
 void testArticle()
@@ -74,7 +76,8 @@ void testArticle()
     std::cout << "All Article tests passed!\n";
 }
 
-void testDataBase(Database &db){
+void testDataBase(Database &db)
+{
     std::time_t now = std::time(nullptr);
 
     // Create newsgroups
@@ -87,7 +90,6 @@ void testDataBase(Database &db){
 
     std::vector<Newsgroup> allGroups = db.getNewsGroups();
 
-   
     assert(allGroups.size() == 2);
 
     // Create articles
@@ -99,19 +101,19 @@ void testDataBase(Database &db){
     db.addArticle(a2, ng1);
 
     // Check article list in newsgroups
-    assert(db.getArticles("ng1").size() == 2); 
-    assert(db.getArticles("ng2").size() == 0); 
+    assert(db.getArticles("ng1").size() == 2);
+    assert(db.getArticles("ng2").size() == 0);
 
     // Retrieve an article
-    std::shared_ptr<Article>fetched = db.getArticle("ng1", "ID1");
-    assert(fetched != nullptr); 
+    std::shared_ptr<Article> fetched = db.getArticle("ng1", "ID1");
+    assert(fetched != nullptr);
     assert(fetched->getTitle() == "title1");
 
     // Delete an article
     std::string ngId = "ng1";
     bool deleted = db.deleteArticle(ngId, "ID1");
     assert(deleted);
-    assert(db.getArticle("ng1", "ID1") == nullptr); 
+    assert(db.getArticle("ng1", "ID1") == nullptr);
 
     // Try deleting non-existent article
     deleted = db.deleteArticle(ngId, "nonexistent");
@@ -127,20 +129,48 @@ void testDataBase(Database &db){
     assert(!removed);
 
     std::cout << "All DatabaseRam tests passed!\n";
-
 }
 
 void testDatabaseRam()
 {
     DatabaseRam db;
     testDataBase(db);
- 
 }
 
-void testDatabaseDisk(){
+void testDatabaseDisk()
+{
 
     DatabaseDisk db;
     testDataBase(db);
+}
+
+void testCommandParser()
+{
+    CommandParser parser;
+
+    auto testParseCommand = [&](const std::string &commandStr, const std::type_info &expectedType)
+    {
+        std::unique_ptr<Command> command = parser.parse(commandStr);
+        if(typeid(*command) != expectedType){
+            std::cerr << "Failed to parse command: " << commandStr << std::endl;
+            std::cerr << "Expected command type: " << expectedType.name() << ", but got: " << typeid(*command).name() << std::endl;
+            exit(1);
+        }
+    };
+
+    testParseCommand("COM_LIST_NG BEN DOVER COM_END", typeid(Invalid));
+    testParseCommand("COM_LIST_NG COM_END", typeid(ListNG));
+    testParseCommand("COM_CREATE_NG PAR_STRING 6 GROUP1 COM_END", typeid(CreateNG));
+    testParseCommand("COM_CREATE_NG PAR_NUM 6 GROUP1 COM_END", typeid(Invalid));
+    testParseCommand("COM_CREATE_NG PAR_STRING A GROUP1 COM_END", typeid(Invalid));
+    testParseCommand("COM_DELETE_NG PAR_NUM 1 COM_END", typeid(DeleteNG));
+    testParseCommand("COM_LIST_ART PAR_NUM 1 COM_END", typeid(ListArticles));
+    testParseCommand("COM_CREATE_ART PAR_NUM 1 PAR_STRING 2 Deez nutz PAR_STRING 2 Ben Dover PAR_STRING 3 He asked me: COM_END", typeid(CreateArticle));
+    testParseCommand("COM_CREATE_ART PAR_NUM 1 PAR_STRING 9 Deez nutz PAR_STRING 9 Ben Dover PAR_STRING 64 He asked me: \"what is ligma?\" and i deliviered the right answer. COM_END", typeid(Invalid));
+    testParseCommand("COM_DELETE_ART PAR_NUM 1 PAR_NUM 1 COM_END", typeid(DeleteArticle));
+    testParseCommand("COM_DELETE_ART PAR_STRING 1 PAR_NUM 1 COM_END", typeid(Invalid));
+
+    std::cout << "Parse tests passed!\n";
 }
 
 int main()
@@ -149,10 +179,12 @@ int main()
     testNewsGroup();
     testDatabaseRam();
     testDatabaseDisk();
+    testCommandParser();
 
-    serverHandler serv;
-    char* args[] = {"localhost", "8080"};
-    serv.setup(2, args);
+
+    // serverHandler serv;
+    // char *args[] = {"localhost", "8080"};
+    // serv.setup(2, args);
 
     return 0;
 }

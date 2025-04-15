@@ -1,13 +1,13 @@
 #ifndef DATABASERAM_H
 #define DATABASERAM_H
 
-#include "article.h"
-#include "database.h"
-#include <string.h>
+#include "article.hh"
+#include "database.hh"
+#include "newsgroup.hh"
+#include <string>
 #include <iostream>
 #include <unordered_map>
 #include <vector>
-#include "newsgroup.h"
 #include <map>
 #include <set>
 

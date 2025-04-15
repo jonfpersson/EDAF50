@@ -1,6 +1,6 @@
 
-#include "newsgroup.h"
-#include <article.h>
+#include "newsgroup.hh"
+#include "article.hh"
 
 
 Newsgroup::Newsgroup(const std::string &name, const std::time_t creationDate, const std::string &id) : name{name}, creationDate{creationDate}, id{id} {}

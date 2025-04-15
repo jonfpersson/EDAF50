@@ -3,10 +3,10 @@
 #ifndef newsgroup_H
 #define newsgroup_H
 
-#include <string.h>
+#include "article.hh"
+#include <string>
 #include <iostream>
 #include <set>
-#include "article.h"
 #include <vector>
 #include <memory>
 

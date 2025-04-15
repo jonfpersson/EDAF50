@@ -1,5 +1,5 @@
-#include "database_ram.h"
-#include "article.h"
+#include "database_ram.hh"
+#include "article.hh"
 #include <string.h>
 #include <iostream>
 #include <memory>

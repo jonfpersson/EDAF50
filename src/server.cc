@@ -24,9 +24,9 @@
 //             added move ctor to Connection and Server
 // ------------------------------------------------------------------
 
-#include "server.h"
+#include "server.hh"
 
-#include "connection.h"
+#include "connection.hh"
 
 #include <algorithm>
 #include <arpa/inet.h> /* htons(), ntohs() */
