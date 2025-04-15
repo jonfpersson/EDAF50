@@ -6,10 +6,10 @@
 #include "utils.hh"
 #include <iostream>
 
-ListNG::ListNG(const std::vector<std::string> &string_tokinized)
+ListNG::ListNG(const std::vector<std::string> &tokenized_string)
 {
 
-    if (string_tokinized.size() != 2 || string_tokinized[0] != "COM_LIST_NG" || string_tokinized[1] != "COM_END")
+    if (tokenized_string.size() != 2 || tokenized_string[0] != "COM_LIST_NG" || tokenized_string[1] != "COM_END")
     {
         throw std::invalid_argument("Invalid command format");
     }
@@ -29,16 +29,16 @@ void ListNG::execute(Database &db, MessageHandler &messageHandler)
     // messageHandler.sendString("ANS_END");
 }
 
-CreateNG::CreateNG(const std::vector<std::string> &string_tokinized)
+CreateNG::CreateNG(const std::vector<std::string> &tokenized_string)
 {
-    if (string_tokinized.size() != 5 || string_tokinized[0] != "COM_CREATE_NG" || string_tokinized[1] != "PAR_STRING" || !isDigit(string_tokinized[2]) || !isValidName(string_tokinized[3]) || string_tokinized[4] != "COM_END")
+    if (tokenized_string.size() != 5 || tokenized_string[0] != "COM_CREATE_NG" || tokenized_string[1] != "PAR_STRING" || !isDigit(tokenized_string[2]) || !isValidName(tokenized_string[3]) || tokenized_string[4] != "COM_END")
     {
         throw std::invalid_argument("Invalid command format");
     }
     else
     {
-        name = string_tokinized[1];
-        id = string_tokinized[3];
+        name = tokenized_string[1];
+        id = tokenized_string[3];
     }
 }
 
@@ -46,15 +46,15 @@ void CreateNG::execute(Database &db, MessageHandler &messageHandler)
 {
 }
 
-DeleteNG::DeleteNG(const std::vector<std::string> &string_tokinized)
+DeleteNG::DeleteNG(const std::vector<std::string> &tokenized_string)
 {
-    if (string_tokinized.size() != 4 || string_tokinized[0] != "COM_DELETE_NG" || string_tokinized[1] != "PAR_NUM" || !isDigit(string_tokinized[2]) || string_tokinized[3] != "COM_END")
+    if (tokenized_string.size() != 4 || tokenized_string[0] != "COM_DELETE_NG" || tokenized_string[1] != "PAR_NUM" || !isDigit(tokenized_string[2]) || tokenized_string[3] != "COM_END")
     {
         throw std::invalid_argument("Invalid command format");
     }
     else
     {
-        id = string_tokinized[3];
+        id = tokenized_string[3];
     }
 }
 
@@ -63,7 +63,7 @@ void DeleteNG::execute(Database &db, MessageHandler &messageHandler)
     // db.removeNewsGroup(getNewsGroup());
 }
 
-Invalid::Invalid(const std::vector<std::string> &string_tokinized)
+Invalid::Invalid(const std::vector<std::string> &tokenized_string)
 {
 }
 
@@ -72,15 +72,15 @@ void Invalid::execute(Database &db, MessageHandler &messageHandler)
     // messageHandler.sendStringParameter("Invalid command bro\n");
 }
 
-ListArticles::ListArticles(const std::vector<std::string> &string_tokinized)
+ListArticles::ListArticles(const std::vector<std::string> &tokenized_string)
 {
-    if (string_tokinized.size() != 4 || string_tokinized[0] != "COM_LIST_ART" || string_tokinized[1] != "PAR_NUM" || !isDigit(string_tokinized[2]) || string_tokinized[3] != "COM_END")
+    if (tokenized_string.size() != 4 || tokenized_string[0] != "COM_LIST_ART" || tokenized_string[1] != "PAR_NUM" || !isDigit(tokenized_string[2]) || tokenized_string[3] != "COM_END")
     {
         throw std::invalid_argument("Invalid command format");
     }
     else
     {
-        group_id = string_tokinized[3];
+        group_id = tokenized_string[3];
     }
 }
 
@@ -102,17 +102,17 @@ void ListArticles::execute(Database &db, MessageHandler &messageHandler)
     // messageHandler.sendString("ANS_END");
 }
 
-CreateArticle::CreateArticle(const std::vector<std::string> &string_tokinized)
+CreateArticle::CreateArticle(const std::vector<std::string> &tokenized_string)
 {
 
-    int lastIndex = string_tokinized.size() - 1;
+    int lastIndex = tokenized_string.size() - 1;
 
-    if (string_tokinized.size() < 13 || string_tokinized[0] != "COM_CREATE_ART" || string_tokinized[1] != "PAR_NUM" || !isDigit(string_tokinized[2]) || string_tokinized[lastIndex] != "COM_END")
+    if (tokenized_string.size() < 13 || tokenized_string[0] != "COM_CREATE_ART" || tokenized_string[1] != "PAR_NUM" || !isDigit(tokenized_string[2]) || tokenized_string[lastIndex] != "COM_END")
     {
         throw std::invalid_argument("Invalid command format");
     }
 
-    std::vector<size_t> indicies = findIndices(string_tokinized, "PAR_STRING");
+    std::vector<size_t> indicies = findIndices(tokenized_string, "PAR_STRING");
 
     if (indicies.size() != 3)
     {
@@ -125,14 +125,14 @@ CreateArticle::CreateArticle(const std::vector<std::string> &string_tokinized)
         int index_current_par_string = indicies[i];
         int index_next_par_string = i != 2 ? indicies[i + 1] : lastIndex;
 
-        if (index_current_par_string == lastIndex || !isDigit(string_tokinized[index_current_par_string + 1]))
+        if (index_current_par_string == lastIndex || !isDigit(tokenized_string[index_current_par_string + 1]))
         {
 
             throw std::invalid_argument("Invalid command format");
         }
         else
         {
-            int wordsExpected = std::stoi(string_tokinized[index_current_par_string + 1]);
+            int wordsExpected = std::stoi(tokenized_string[index_current_par_string + 1]);
             int words_actual = index_next_par_string - (index_current_par_string + 2);
 
             if (wordsExpected <= 0 || wordsExpected != words_actual)
@@ -142,26 +142,26 @@ CreateArticle::CreateArticle(const std::vector<std::string> &string_tokinized)
         }
     }
 
-    group_id = string_tokinized[2];
-    title = joinStrings({string_tokinized.begin() + 5, string_tokinized.begin() + 5 + std::stoi(string_tokinized[indicies[0] + 1])}, " ");
-    author = joinStrings({string_tokinized.begin() + indicies[1] + 2, string_tokinized.begin() + indicies[1] + 2 + std::stoi(string_tokinized[indicies[1] + 1])}, " ");
-    text =  joinStrings({string_tokinized.begin() + indicies[2] + 2, string_tokinized.begin() + indicies[2] + 2 + std::stoi(string_tokinized[indicies[2] + 1])}, " ");
+    group_id = tokenized_string[2];
+    title = joinStrings({tokenized_string.begin() + 5, tokenized_string.begin() + 5 + std::stoi(tokenized_string[indicies[0] + 1])}, " ");
+    author = joinStrings({tokenized_string.begin() + indicies[1] + 2, tokenized_string.begin() + indicies[1] + 2 + std::stoi(tokenized_string[indicies[1] + 1])}, " ");
+    text =  joinStrings({tokenized_string.begin() + indicies[2] + 2, tokenized_string.begin() + indicies[2] + 2 + std::stoi(tokenized_string[indicies[2] + 1])}, " ");
 }
 
 void CreateArticle::execute(Database &db, MessageHandler &messageHandler)
 {
 }
 
-GetArticle::GetArticle(const std::vector<std::string> &string_tokinized)
+GetArticle::GetArticle(const std::vector<std::string> &tokenized_string)
 {
-    if (string_tokinized.size() != 6 || string_tokinized[0] != "COM_GET_ART" || string_tokinized[1] != "PAR_NUM" || !isDigit(string_tokinized[2]) || string_tokinized[3] != "PAR_NUM" || !isDigit(string_tokinized[4]) || string_tokinized[5] != "COM_END")
+    if (tokenized_string.size() != 6 || tokenized_string[0] != "COM_GET_ART" || tokenized_string[1] != "PAR_NUM" || !isDigit(tokenized_string[2]) || tokenized_string[3] != "PAR_NUM" || !isDigit(tokenized_string[4]) || tokenized_string[5] != "COM_END")
     {
         throw std::invalid_argument("Invalid command format");
     }
     else
     {
-        group_id = string_tokinized[2];
-        article_id = string_tokinized[4];
+        group_id = tokenized_string[2];
+        article_id = tokenized_string[4];
     }
 }
 
@@ -169,16 +169,16 @@ void GetArticle::execute(Database &db, MessageHandler &messageHandler)
 {
 }
 
-DeleteArticle::DeleteArticle(const std::vector<std::string> &string_tokinized)
+DeleteArticle::DeleteArticle(const std::vector<std::string> &tokenized_string)
 {
-    if (string_tokinized.size() != 6 || string_tokinized[0] != "COM_DELETE_ART" || string_tokinized[1] != "PAR_NUM" || !isDigit(string_tokinized[2]) || string_tokinized[3] != "PAR_NUM" || !isDigit(string_tokinized[4]) || string_tokinized[5] != "COM_END")
+    if (tokenized_string.size() != 6 || tokenized_string[0] != "COM_DELETE_ART" || tokenized_string[1] != "PAR_NUM" || !isDigit(tokenized_string[2]) || tokenized_string[3] != "PAR_NUM" || !isDigit(tokenized_string[4]) || tokenized_string[5] != "COM_END")
     {
         throw std::invalid_argument("Invalid command format");
     }
     else
     {
-        group_id = string_tokinized[2];
-        article_id = string_tokinized[4];
+        group_id = tokenized_string[2];
+        article_id = tokenized_string[4];
     }
 }
 
