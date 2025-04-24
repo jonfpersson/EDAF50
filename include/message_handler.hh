@@ -5,6 +5,7 @@
 #include "protocol.hh"
 #include "connectionclosedexception.hh"
 #include <string>
+#include <memory>
 
 class MessageHandler {
 public:
