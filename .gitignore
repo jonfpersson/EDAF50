@@ -34,3 +34,8 @@
 .vscode/
 test/
 app
+build
+bin
+obj
+test
+testserver
