@@ -17,16 +17,20 @@ ListNG::ListNG(const std::vector<std::string> &tokenized_string)
 
 void ListNG::execute(Database &db, MessageHandler &messageHandler)
 {
-    // std::vector<Newsgroup> groups = db.getNewsGroups();
+    auto&& groups = db.getNewsGroups();
 
-    // messageHandler.sendString("ANS_LIST_NG");
+    messageHandler.sendCode(Protocol::ANS_LIST_NG);
+    messageHandler.sendIntParameter(groups.size());
 
-    // for (Newsgroup ng : groups)
-    // {
-    //     messageHandler.sendString(ng.getName());
-    // }
+    for (auto it = groups.cbegin(); it != groups.cend(); ++it)
+    {
+        const Newsgroup &ng = *it;
+        messageHandler.sendCode(Protocol::PAR_NUM);
+        messageHandler.sendIntParameter(std::stoi(ng.getId()));
+        messageHandler.sendCode(Protocol::PAR_STRING);
+    }
 
-    // messageHandler.sendString("ANS_END");
+    messageHandler.sendCode(Protocol::ANS_END);
 }
 
 CreateNG::CreateNG(const std::vector<std::string> &tokenized_string)

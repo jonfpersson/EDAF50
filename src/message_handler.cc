@@ -1,39 +1,40 @@
 #include "message_handler.hh"
 #include "protocol.hh"
+#include <ios>
 
 MessageHandler::MessageHandler(std::shared_ptr<Connection> conn)
     : conn(conn) {}
 
 void MessageHandler::sendByte(int code) {
-    // try {
-    //     conn->write(static_cast<char>(code));
-    // } catch (const std::ios_base::failure&) {
-    //     throw ConnectionClosedException();
-    // }
+     try {
+         conn->write(static_cast<char>(code));
+     } catch (const std::ios_base::failure&) {
+         throw ConnectionClosedException();
+     }
 }
 
-void MessageHandler::sendCode(int code) {
-    // sendByte(code);
+void MessageHandler::sendCode(Protocol code) {
+    sendByte(static_cast<int>(code));
 }
 
 void MessageHandler::sendInt(int value) {
-    // sendByte((value >> 24) & 0xFF);
-    // sendByte((value >> 16) & 0xFF);
-    // sendByte((value >> 8) & 0xFF);
-    // sendByte(value & 0xFF);
+    sendByte((value >> 24) & 0xFF);
+    sendByte((value >> 16) & 0xFF);
+    sendByte((value >> 8) & 0xFF);
+    sendByte(value & 0xFF);
 }
 
 void MessageHandler::sendIntParameter(int param) {
-    // sendCode(Protocol::PAR_NUM);
-    // sendInt(param);
+    sendCode(Protocol::PAR_NUM);
+    sendInt(param);
 }
 
 void MessageHandler::sendStringParameter(const std::string& param) {
-    // sendCode(Protocol::PAR_STRING);
-    // sendInt(static_cast<int>(param.length()));
-    // for (char ch : param) {
-    //     sendByte(static_cast<unsigned char>(ch));
-    // }
+    sendCode(Protocol::PAR_STRING);
+    sendInt(static_cast<int>(param.length()));
+    for (char ch : param) {
+        sendByte(static_cast<unsigned char>(ch));
+    }
 }
 
 int MessageHandler::recvByte() {

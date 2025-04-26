@@ -11,7 +11,7 @@ class MessageHandler {
 public:
     explicit MessageHandler(std::shared_ptr<Connection> conn);
 
-    void sendCode(int code);
+    void sendCode(Protocol code);
     void sendInt(int value);
     void sendIntParameter(int param);
     void sendStringParameter(const std::string& param);
