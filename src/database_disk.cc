@@ -36,7 +36,7 @@ void DatabaseDisk::addNewsGroup(const Newsgroup& newsgroup){
 
 }
 
-void DatabaseDisk::addArticle(std::shared_ptr<Article> article,  Newsgroup& newsgroup){
+void DatabaseDisk::addArticle(std::shared_ptr<Article> article, const Newsgroup& newsgroup){
 
     //format for a newgroup (directories)
     // name - id

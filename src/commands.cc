@@ -200,6 +200,24 @@ CreateArticle::CreateArticle(const std::vector<std::string> &tokenized_string)
 
 void CreateArticle::execute(Database &db, MessageHandler &messageHandler)
 {
+    messageHandler.sendCode(Protocol::ANS_CREATE_ART);
+    auto&& groups = db.getNewsGroups();
+    for(auto it = groups.cbegin(); it != groups.cend(); ++it)
+    {
+        const Newsgroup &ng = *it;
+        if(ng.getId() == group_id)
+        {
+            messageHandler.sendCode(Protocol::ANS_ACK);
+            auto article = std::make_shared<Article>(title, author, text, std::time(nullptr), std::to_string(std::stoi(ng.getId())));
+            db.addArticle(article, ng);
+            messageHandler.sendCode(Protocol::ANS_END);
+            return;
+        }
+    }
+
+    messageHandler.sendCode(Protocol::ANS_NAK);
+    messageHandler.sendCode(Protocol::ERR_NG_DOES_NOT_EXIST);
+    messageHandler.sendCode(Protocol::ANS_END);
 }
 
 GetArticle::GetArticle(const std::vector<std::string> &tokenized_string)
@@ -217,6 +235,38 @@ GetArticle::GetArticle(const std::vector<std::string> &tokenized_string)
 
 void GetArticle::execute(Database &db, MessageHandler &messageHandler)
 {
+    messageHandler.sendCode(Protocol::ANS_GET_ART);
+    auto&& groups = db.getNewsGroups();
+    for(auto it = groups.cbegin(); it != groups.cend(); ++it)
+    {
+        const Newsgroup &ng = *it;
+        if(ng.getId() == group_id)
+        {
+            auto article = db.getArticle(group_id, article_id);
+            if(article != nullptr)
+            {
+                messageHandler.sendCode(Protocol::ANS_ACK);
+                messageHandler.sendStringParameter(article->getTitle());
+                messageHandler.sendStringParameter(article->getAuthor());
+                messageHandler.sendStringParameter(article->getText());
+                messageHandler.sendCode(Protocol::ANS_END);
+                return;
+            }
+        }
+    }
+
+    messageHandler.sendCode(Protocol::ANS_NAK);
+    auto&& articles = db.getArticles(group_id);
+    if(articles.size() == 0)
+    {
+        messageHandler.sendCode(Protocol::ERR_NG_DOES_NOT_EXIST);
+    }
+    else
+    {
+        messageHandler.sendCode(Protocol::ERR_ART_DOES_NOT_EXIST);
+    }
+    
+    messageHandler.sendCode(Protocol::ANS_END);
 }
 
 DeleteArticle::DeleteArticle(const std::vector<std::string> &tokenized_string)
@@ -234,4 +284,37 @@ DeleteArticle::DeleteArticle(const std::vector<std::string> &tokenized_string)
 
 void DeleteArticle::execute(Database &db, MessageHandler &messageHandler)
 {
+    messageHandler.sendCode(Protocol::ANS_DELETE_ART);
+    auto&& groups = db.getNewsGroups();
+    for(auto it = groups.cbegin(); it != groups.cend(); ++it)
+    {
+        const Newsgroup &ng = *it;
+        if(ng.getId() == group_id)
+        {
+            auto&& articles = db.getArticles(group_id);
+            for(auto it = articles.cbegin(); it != articles.cend(); ++it)
+            {
+                if((*it)->getId() == article_id)
+                {
+                    db.deleteArticle(group_id, article_id);
+                    messageHandler.sendCode(Protocol::ANS_ACK);
+                    messageHandler.sendCode(Protocol::ANS_END);
+                    return;
+                }
+            }
+        }
+    }
+
+    messageHandler.sendCode(Protocol::ANS_NAK);
+    auto&& articles = db.getArticles(group_id);
+    if(articles.size() == 0)
+    {
+        messageHandler.sendCode(Protocol::ERR_NG_DOES_NOT_EXIST);
+    }
+    else
+    {
+        messageHandler.sendCode(Protocol::ERR_ART_DOES_NOT_EXIST);
+    }
+    
+    messageHandler.sendCode(Protocol::ANS_END);
 }

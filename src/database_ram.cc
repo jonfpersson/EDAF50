@@ -19,7 +19,7 @@ void DatabaseRam::addNewsGroup(const Newsgroup &newsgroup)
 }
 
 // Handle error if the group does not exist!
-void DatabaseRam::addArticle(std::shared_ptr<Article>article, Newsgroup &newsgroup)
+void DatabaseRam::addArticle(std::shared_ptr<Article>article, const Newsgroup &newsgroup)
 {
 
     for (auto it = newsgroups.begin(); it != newsgroups.end(); ++it)
