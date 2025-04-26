@@ -81,7 +81,23 @@ DeleteNG::DeleteNG(const std::vector<std::string> &tokenized_string)
 
 void DeleteNG::execute(Database &db, MessageHandler &messageHandler)
 {
-    // db.removeNewsGroup(getNewsGroup());
+    messageHandler.sendCode(Protocol::ANS_DELETE_NG);
+    auto&& groups = db.getNewsGroups();
+    for(auto it = groups.cbegin(); it != groups.cend(); ++it)
+    {
+        const Newsgroup &ng = *it;
+        if(ng.getId() == id)
+        {
+            db.removeNewsGroup(id);
+            messageHandler.sendCode(Protocol::ANS_ACK);
+            messageHandler.sendCode(Protocol::ANS_END);
+            return;
+        }
+    }
+    messageHandler.sendCode(Protocol::ANS_NAK);
+    messageHandler.sendCode(Protocol::ERR_NG_DOES_NOT_EXIST);
+    messageHandler.sendCode(Protocol::ANS_END);
+
 }
 
 Invalid::Invalid(const std::vector<std::string> &tokenized_string)
