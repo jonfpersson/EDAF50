@@ -123,20 +123,33 @@ ListArticles::ListArticles(const std::vector<std::string> &tokenized_string)
 
 void ListArticles::execute(Database &db, MessageHandler &messageHandler)
 {
-    // std::vector<std::shared_ptr<Article>>  articles = db.getArticles();
+    auto&& groups = db.getNewsGroups();
 
-    // messageHandler.sendString("ANS_LIST_ART ");
+    auto&& articles = db.getArticles(group_id);
+    messageHandler.sendCode(Protocol::ANS_LIST_ART);
 
-    // if(articles.empty()){
-    //     messageHandler.sendString("ANS_NAK ERR_NG_DOES_NOT_EXIST");
-    // } else{
-    //     // for (Article article : articles)
-    //     // {
-    //     //     messageHandler.sendString(article.getTitle());
-    //     // }
-    // }
+    for(auto it = groups.cbegin(); it != groups.cend(); ++it)
+    {
+        const Newsgroup &ng = *it;
+        if(ng.getId() == group_id)
+        {
+            messageHandler.sendCode(Protocol::ANS_ACK);
+            messageHandler.sendIntParameter(articles.size());
+            for(auto& article : articles)
+            {
+                messageHandler.sendIntParameter(std::stoi(article->getId()));
+                messageHandler.sendStringParameter(article->getTitle());
+            }
+            messageHandler.sendCode(Protocol::ANS_END);
+            return;
+        }
+    }
 
-    // messageHandler.sendString("ANS_END");
+    messageHandler.sendCode(Protocol::ANS_NAK);
+    messageHandler.sendCode(Protocol::ERR_NG_DOES_NOT_EXIST);
+    messageHandler.sendCode(Protocol::ANS_END);
+
+
 }
 
 CreateArticle::CreateArticle(const std::vector<std::string> &tokenized_string)
