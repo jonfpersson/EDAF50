@@ -48,6 +48,23 @@ CreateNG::CreateNG(const std::vector<std::string> &tokenized_string)
 
 void CreateNG::execute(Database &db, MessageHandler &messageHandler)
 {
+    messageHandler.sendCode(Protocol::ANS_CREATE_NG);
+    auto&& groups = db.getNewsGroups();
+    for(auto it = groups.cbegin(); it != groups.cend(); ++it)
+    {
+        const Newsgroup &ng = *it;
+        if(ng.getName() == name)
+        {
+            messageHandler.sendCode(Protocol::ANS_NAK);
+            messageHandler.sendCode(Protocol::ERR_NG_ALREADY_EXISTS);
+            messageHandler.sendCode(Protocol::ANS_END);
+            return;
+        }
+    }
+    messageHandler.sendCode(Protocol::ANS_ACK);
+    db.addNewsGroup(Newsgroup(name, std::time(nullptr), id));
+    messageHandler.sendCode(Protocol::ANS_END);
+
 }
 
 DeleteNG::DeleteNG(const std::vector<std::string> &tokenized_string)
