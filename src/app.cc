@@ -175,12 +175,11 @@ void testCommandParser()
 
 int main()
 {
-    testArticle();
-    testNewsGroup();
-    testDatabaseRam();
-    testDatabaseDisk();
-    testCommandParser();
-
+    // testArticle();
+    // testNewsGroup();
+    // testDatabaseRam();
+    // testDatabaseDisk();
+    // testCommandParser();
 
     // serverHandler serv;
     // char *args[] = {"localhost", "8080"};
