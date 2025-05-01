@@ -2,7 +2,8 @@
 #include "protocol.hh"
 #include "connectionclosedexception.hh"
 #include <ios>
-
+#include <ostream>
+#include <iostream>
 inline bool operator==(int value, Protocol protocol)
 {
     return static_cast<int>(protocol) == value;
@@ -21,6 +22,7 @@ void MessageHandler::sendByte(int code)
     try
     {
         conn->write(static_cast<char>(code));
+        std::cout << "wrote to client: " << (int) code << std::endl;
     }
     catch (const std::ios_base::failure &)
     {

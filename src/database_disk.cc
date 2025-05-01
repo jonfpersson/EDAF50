@@ -72,7 +72,7 @@ std::vector<Newsgroup> DatabaseDisk::getNewsGroups() {
         std::string name;
         getline(metadata_file, name);
 
-        groups.push_back(Newsgroup(dir_entry.path().filename(), std::stoi(creationDate), name));
+        groups.push_back(Newsgroup(name, std::stoi(creationDate), dir_entry.path().filename()));
     }
 
     return groups; 

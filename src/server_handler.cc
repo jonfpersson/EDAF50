@@ -2,6 +2,9 @@
 #include "connectionclosedexception.hh"
 #include "server.hh"
 #include "server_handler.hh"
+#include "protocol.hh"
+#include "command_parser.hh"
+#include "database_disk.hh"
 
 #include <cstdlib>
 #include <iostream>
@@ -60,24 +63,36 @@ Server init(int argc, char* argv[])
         return server;
 }
 
-void process_request(std::shared_ptr<Connection>& conn)
+void process_request(std::shared_ptr<Connection>& conn, Database& db)
 {
+        MessageHandler messageHandler(conn);
 
-        // read command byte(s)
+        static std::vector<Protocol> command_string;
+
         unsigned char byte = conn->read();
+        command_string.push_back((Protocol)byte);
+    //for(Protocol p : tokenized_string){
+    std::cout << (int)byte << std::endl;
 
-        /* logic here */
+    //}
 
-        //write back to server
-        //writeString(conn, result);
+        if(byte == (char) Protocol::COM_END){
+                CommandParser parser;
+
+                parser.parse(command_string)->execute(db, messageHandler);
+                command_string.clear();
+
+        }
+
 }
 
 void start(Server& server)
 {
+        DatabaseDisk db;
         auto conn = server.waitForActivity();
         if (conn != nullptr) {
                 try {
-                    process_request(conn);
+                    process_request(conn, db);
                 } catch (ConnectionClosedException&) {
                         server.deregisterConnection(conn);
                         cout << "Client closed connection" << endl;
@@ -92,7 +107,6 @@ void start(Server& server)
 int main(int argc, char* argv[])
 {
         auto server = init(argc, argv);
-
         while (true) {
                 start(server);
         }

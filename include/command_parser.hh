@@ -8,7 +8,7 @@
 class CommandParser
 {
 public:
-    std::unique_ptr<Command> parse(const std::string &);
+    std::unique_ptr<Command> parse(const std::vector<Protocol>& );
 };
 
 #endif 

@@ -146,7 +146,7 @@ void testDatabaseDisk()
 
 void testCommandParser()
 {
-    CommandParser parser;
+    /*CommandParser parser;
 
     auto testParseCommand = [&](const std::string &commandStr, const std::type_info &expectedType)
     {
@@ -170,17 +170,17 @@ void testCommandParser()
     testParseCommand("COM_DELETE_ART PAR_NUM 1 PAR_NUM 1 COM_END", typeid(DeleteArticle));
     testParseCommand("COM_DELETE_ART PAR_STRING 1 PAR_NUM 1 COM_END", typeid(Invalid));
 
-    std::cout << "Parse tests passed!\n";
+    std::cout << "Parse tests passed!\n";*/
 }
 
 int main()
 {
-    // testArticle();
-    // testNewsGroup();
-    // testDatabaseRam();
-    // testDatabaseDisk();
-    // testCommandParser();
-
+    /*testArticle();
+    testNewsGroup();
+    testDatabaseRam();
+    testDatabaseDisk();
+    testCommandParser();
+*/
     // serverHandler serv;
     // char *args[] = {"localhost", "8080"};
     // serv.setup(2, args);

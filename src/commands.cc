@@ -5,14 +5,15 @@
 #include "message_handler.hh"
 #include "utils.hh"
 #include <iostream>
+#include <stdexcept>
+#include <vector>
+#include <string>
+#include <cstdint>
+#include <random>
 
-ListNG::ListNG(const std::vector<std::string> &tokenized_string)
+ListNG::ListNG(const std::vector<Protocol> &tokenized_string)
 {
 
-    if (tokenized_string.size() != 2 || tokenized_string[0] != "COM_LIST_NG" || tokenized_string[1] != "COM_END")
-    {
-        throw std::invalid_argument("Invalid command format");
-    }
 }
 
 void ListNG::execute(Database &db, MessageHandler &messageHandler)
@@ -25,25 +26,42 @@ void ListNG::execute(Database &db, MessageHandler &messageHandler)
     for (auto it = groups.cbegin(); it != groups.cend(); ++it)
     {
         const Newsgroup &ng = *it;
-        messageHandler.sendCode(Protocol::PAR_NUM);
         messageHandler.sendIntParameter(std::stoi(ng.getId()));
-        messageHandler.sendCode(Protocol::PAR_STRING);
+        messageHandler.sendStringParameter((ng.getName()));
+
     }
 
     messageHandler.sendCode(Protocol::ANS_END);
 }
 
-CreateNG::CreateNG(const std::vector<std::string> &tokenized_string)
-{
-    if (tokenized_string.size() != 5 || tokenized_string[0] != "COM_CREATE_NG" || tokenized_string[1] != "PAR_STRING" || !isDigit(tokenized_string[2]) || !isValidName(tokenized_string[3]) || tokenized_string[4] != "COM_END")
-    {
-        throw std::invalid_argument("Invalid command format");
+CreateNG::CreateNG(const std::vector<Protocol> &tokenized_string) {
+
+    size_t i = 0;
+
+    if (tokenized_string[i++] != Protocol::COM_CREATE_NG) {
+        throw std::invalid_argument("Expected COM_CREATE_NG");
     }
-    else
-    {
-        name = tokenized_string[1];
-        id = tokenized_string[3];
+
+    if (tokenized_string[i++] != Protocol::PAR_STRING) {
+        throw std::invalid_argument("Expected PAR_STRING");
     }
+    i++; //????
+    i++;
+    i++;
+
+    int str_len = static_cast<int>(tokenized_string[i++]);
+
+
+    std::string extracted_name;
+    for (int j = 0; j < str_len; ++j) {
+        extracted_name += static_cast<char>(static_cast<int>(tokenized_string[i++]));
+    }
+
+    name = extracted_name;
+
+
+    std::cout << name << std::endl;
+
 }
 
 void CreateNG::execute(Database &db, MessageHandler &messageHandler)
@@ -62,21 +80,26 @@ void CreateNG::execute(Database &db, MessageHandler &messageHandler)
         }
     }
     messageHandler.sendCode(Protocol::ANS_ACK);
-    db.addNewsGroup(Newsgroup(name, std::time(nullptr), id));
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distr(1, 10000);
+    int random_number = distr(gen);
+
+    db.addNewsGroup(Newsgroup(name, std::time(nullptr), std::to_string(random_number)));
     messageHandler.sendCode(Protocol::ANS_END);
 
 }
 
-DeleteNG::DeleteNG(const std::vector<std::string> &tokenized_string)
-{
-    if (tokenized_string.size() != 4 || tokenized_string[0] != "COM_DELETE_NG" || tokenized_string[1] != "PAR_NUM" || !isDigit(tokenized_string[2]) || tokenized_string[3] != "COM_END")
+DeleteNG::DeleteNG(const std::vector<Protocol> &tokenized_string) {
+    if (tokenized_string.size() != 4 ||
+        tokenized_string[0] != Protocol::COM_DELETE_NG ||
+        tokenized_string[1] != Protocol::PAR_NUM ||
+        tokenized_string[3] != Protocol::COM_END)
     {
         throw std::invalid_argument("Invalid command format");
     }
-    else
-    {
-        id = tokenized_string[3];
-    }
+
+    id = static_cast<int>(tokenized_string[2]);
 }
 
 void DeleteNG::execute(Database &db, MessageHandler &messageHandler)
@@ -100,7 +123,7 @@ void DeleteNG::execute(Database &db, MessageHandler &messageHandler)
 
 }
 
-Invalid::Invalid(const std::vector<std::string> &tokenized_string)
+Invalid::Invalid(const std::vector<Protocol> &tokenized_string)
 {
 }
 
@@ -109,16 +132,16 @@ void Invalid::execute(Database &db, MessageHandler &messageHandler)
     // messageHandler.sendStringParameter("Invalid command bro\n");
 }
 
-ListArticles::ListArticles(const std::vector<std::string> &tokenized_string)
-{
-    if (tokenized_string.size() != 4 || tokenized_string[0] != "COM_LIST_ART" || tokenized_string[1] != "PAR_NUM" || !isDigit(tokenized_string[2]) || tokenized_string[3] != "COM_END")
+ListArticles::ListArticles(const std::vector<Protocol> &tokenized_string) {
+    if (tokenized_string.size() != 4 ||
+        tokenized_string[0] != Protocol::COM_LIST_ART ||
+        tokenized_string[1] != Protocol::PAR_NUM ||
+        tokenized_string[3] != Protocol::COM_END)
     {
         throw std::invalid_argument("Invalid command format");
     }
-    else
-    {
-        group_id = tokenized_string[3];
-    }
+
+    group_id = static_cast<int>(tokenized_string[6]);
 }
 
 void ListArticles::execute(Database &db, MessageHandler &messageHandler)
@@ -152,50 +175,56 @@ void ListArticles::execute(Database &db, MessageHandler &messageHandler)
 
 }
 
-CreateArticle::CreateArticle(const std::vector<std::string> &tokenized_string)
+std::string CreateArticle::extractString(const std::vector<Protocol>& tokens, size_t index, int length) {
+    std::string result;
+    for (int i = 0; i < length; ++i) {
+        result += static_cast<char>(static_cast<int>(tokens[index + i]));
+    }
+    return result;
+}
+
+CreateArticle::CreateArticle(const std::vector<Protocol> &tokenized_string)
 {
-
-    int lastIndex = tokenized_string.size() - 1;
-
-    if (tokenized_string.size() < 13 || tokenized_string[0] != "COM_CREATE_ART" || tokenized_string[1] != "PAR_NUM" || !isDigit(tokenized_string[2]) || tokenized_string[lastIndex] != "COM_END")
+    if (tokenized_string.size() < 13 || 
+        tokenized_string[0] != Protocol::COM_CREATE_ART || 
+        tokenized_string[1] != Protocol::PAR_NUM || 
+        tokenized_string.back() != Protocol::COM_END)
     {
         throw std::invalid_argument("Invalid command format");
     }
 
-    std::vector<size_t> indicies = findIndices(tokenized_string, "PAR_STRING");
+    group_id = static_cast<int>(tokenized_string[2]);
 
-    if (indicies.size() != 3)
-    {
+    size_t index = 3;
 
-        throw std::invalid_argument("Invalid command format");
-    }
-
-    for (int i = 0; i < 3; i++)
-    {
-        int index_current_par_string = indicies[i];
-        int index_next_par_string = i != 2 ? indicies[i + 1] : lastIndex;
-
-        if (index_current_par_string == lastIndex || !isDigit(tokenized_string[index_current_par_string + 1]))
-        {
-
-            throw std::invalid_argument("Invalid command format");
+    auto parseStringParam = [&](std::string& outStr) {
+        if (index >= tokenized_string.size() || tokenized_string[index] != Protocol::PAR_STRING) {
+            throw std::invalid_argument("Expected PAR_STRING");
         }
-        else
-        {
-            int wordsExpected = std::stoi(tokenized_string[index_current_par_string + 1]);
-            int words_actual = index_next_par_string - (index_current_par_string + 2);
+        ++index;
 
-            if (wordsExpected <= 0 || wordsExpected != words_actual)
-            {
-                throw std::invalid_argument("Invalid command format");
-            }
+        if (index >= tokenized_string.size()) {
+            throw std::invalid_argument("Expected string length after PAR_STRING");
         }
-    }
 
-    group_id = tokenized_string[2];
-    title = joinStrings({tokenized_string.begin() + 5, tokenized_string.begin() + 5 + std::stoi(tokenized_string[indicies[0] + 1])}, " ");
-    author = joinStrings({tokenized_string.begin() + indicies[1] + 2, tokenized_string.begin() + indicies[1] + 2 + std::stoi(tokenized_string[indicies[1] + 1])}, " ");
-    text =  joinStrings({tokenized_string.begin() + indicies[2] + 2, tokenized_string.begin() + indicies[2] + 2 + std::stoi(tokenized_string[indicies[2] + 1])}, " ");
+        int len = static_cast<int>(tokenized_string[index]);
+        ++index;
+
+        if (index + len > tokenized_string.size()) {
+            throw std::invalid_argument("String data out of bounds");
+        }
+
+        outStr = extractString(tokenized_string, index, len);
+        index += len;
+    };
+
+    parseStringParam(title);
+    parseStringParam(author);
+    parseStringParam(text);
+
+    if (tokenized_string[index] != Protocol::COM_END) {
+        throw std::invalid_argument("Missing COM_END");
+    }
 }
 
 void CreateArticle::execute(Database &db, MessageHandler &messageHandler)
@@ -220,18 +249,21 @@ void CreateArticle::execute(Database &db, MessageHandler &messageHandler)
     messageHandler.sendCode(Protocol::ANS_END);
 }
 
-GetArticle::GetArticle(const std::vector<std::string> &tokenized_string)
+GetArticle::GetArticle(const std::vector<Protocol> &tokenized_string)
 {
-    if (tokenized_string.size() != 6 || tokenized_string[0] != "COM_GET_ART" || tokenized_string[1] != "PAR_NUM" || !isDigit(tokenized_string[2]) || tokenized_string[3] != "PAR_NUM" || !isDigit(tokenized_string[4]) || tokenized_string[5] != "COM_END")
+    if (tokenized_string.size() != 6 ||
+        tokenized_string[0] != Protocol::COM_GET_ART ||
+        tokenized_string[1] != Protocol::PAR_NUM ||
+        tokenized_string[3] != Protocol::PAR_NUM ||
+        tokenized_string[5] != Protocol::COM_END)
     {
         throw std::invalid_argument("Invalid command format");
     }
-    else
-    {
-        group_id = tokenized_string[2];
-        article_id = tokenized_string[4];
-    }
+
+    group_id = static_cast<int>(tokenized_string[2]);
+    article_id = static_cast<int>(tokenized_string[4]);
 }
+
 
 void GetArticle::execute(Database &db, MessageHandler &messageHandler)
 {
@@ -269,18 +301,21 @@ void GetArticle::execute(Database &db, MessageHandler &messageHandler)
     messageHandler.sendCode(Protocol::ANS_END);
 }
 
-DeleteArticle::DeleteArticle(const std::vector<std::string> &tokenized_string)
+DeleteArticle::DeleteArticle(const std::vector<Protocol> &tokenized_string)
 {
-    if (tokenized_string.size() != 6 || tokenized_string[0] != "COM_DELETE_ART" || tokenized_string[1] != "PAR_NUM" || !isDigit(tokenized_string[2]) || tokenized_string[3] != "PAR_NUM" || !isDigit(tokenized_string[4]) || tokenized_string[5] != "COM_END")
+    if (tokenized_string.size() != 6 ||
+        tokenized_string[0] != Protocol::COM_DELETE_ART ||
+        tokenized_string[1] != Protocol::PAR_NUM ||
+        tokenized_string[3] != Protocol::PAR_NUM ||
+        tokenized_string[5] != Protocol::COM_END)
     {
         throw std::invalid_argument("Invalid command format");
     }
-    else
-    {
-        group_id = tokenized_string[2];
-        article_id = tokenized_string[4];
-    }
+
+    group_id = static_cast<int>(tokenized_string[2]);
+    article_id = static_cast<int>(tokenized_string[4]);
 }
+
 
 void DeleteArticle::execute(Database &db, MessageHandler &messageHandler)
 {

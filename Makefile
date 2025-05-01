@@ -1,5 +1,5 @@
 CC := g++
-CFLAGS := -Iinclude -std=c++17
+CFLAGS := -Iinclude -std=c++17 -g
 SRC_DIR := src
 OBJ_DIR := obj
 BIN_DIR := bin
@@ -16,7 +16,7 @@ APP_OBJ := $(OBJ_DIR)/app.o
 SERVER_OBJ := $(OBJ_DIR)/server_handler.o
 CLIENT_OBJ := $(OBJ_DIR)/client_handler.o
 
-all: $(APP_BIN) $(SERVER_BIN) $(CLIENT_BIN)
+all: $(SERVER_BIN) $(CLIENT_BIN) $(APP_BIN)
 
 $(APP_BIN): $(COMMON_OBJS) $(APP_OBJ) | $(BIN_DIR)
 	$(CC) $(CFLAGS) $^ -o $@

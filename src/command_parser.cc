@@ -6,48 +6,48 @@
 #include <cstring>
 #include "utils.hh"
 
-std::unique_ptr<Command> CommandParser::parse(const std::string &commandStr)
+std::unique_ptr<Command> CommandParser::parse(const std::vector<Protocol>& commandStr)
 {
-    std::vector<std::string> command_string_tokenized = split(commandStr, " ");
-    std::string command_type = command_string_tokenized[0];
-
+    Protocol command_type = commandStr[0];
     try
     {
-        if (command_type == "COM_LIST_NG")
+        if (command_type == Protocol::COM_LIST_NG)
         {
-            return std::unique_ptr<Command>(new ListNG(command_string_tokenized));
+            return std::unique_ptr<Command>(new ListNG(commandStr));
         }
-        else if (command_type == "COM_CREATE_NG")
+        else if (command_type == Protocol::COM_CREATE_NG)
         {
-            return std::unique_ptr<Command>(new CreateNG(command_string_tokenized));
+            return std::unique_ptr<Command>(new CreateNG(commandStr));
         }
-        else if (command_type == "COM_DELETE_NG")
+        else if (command_type == Protocol::COM_DELETE_NG)
         {
-            return std::unique_ptr<Command>(new DeleteNG(command_string_tokenized));
+            return std::unique_ptr<Command>(new DeleteNG(commandStr));
         }
-        else if (command_type == "COM_LIST_ART")
+        else if (command_type == Protocol::COM_LIST_ART)
         {
-            return std::unique_ptr<Command>(new ListArticles(command_string_tokenized));
+            return std::unique_ptr<Command>(new ListArticles(commandStr));
         }
-        else if (command_type == "COM_CREATE_ART")
+        else if (command_type == Protocol::COM_CREATE_ART)
         {
-            return std::unique_ptr<Command>(new CreateArticle(command_string_tokenized));
+            return std::unique_ptr<Command>(new CreateArticle(commandStr));
         }
-        else if (command_type == "COM_GET_ART")
+        else if (command_type == Protocol::COM_GET_ART)
         {
-            return std::unique_ptr<Command>(new GetArticle(command_string_tokenized));
+            return std::unique_ptr<Command>(new GetArticle(commandStr));
         }
-        else if (command_type == "COM_DELETE_ART")
+        else if (command_type == Protocol::COM_DELETE_ART)
         {
-            return std::unique_ptr<Command>(new DeleteArticle(command_string_tokenized));
+            return std::unique_ptr<Command>(new DeleteArticle(commandStr));
         }
-        else{
-            return std::unique_ptr<Command>(new Invalid(std::vector<std::string>()));
+        else
+        {
+            return std::unique_ptr<Command>(new Invalid(std::vector<Protocol>()));
         }
     }
     catch (...)
     {
-        return std::unique_ptr<Command>(new Invalid(std::vector<std::string>()));
+        return std::unique_ptr<Command>(new Invalid(std::vector<Protocol>()));
     }
+
 
 }
