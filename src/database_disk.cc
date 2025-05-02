@@ -68,19 +68,36 @@ void DatabaseDisk::addArticle(std::shared_ptr<Article> article, const Newsgroup&
 // detta returnerar egentligen en kopia av vectorn men men
 std::vector<Newsgroup> DatabaseDisk::getNewsGroups() {
     std::vector<Newsgroup> groups;
-    for (auto const& dir_entry : std::filesystem::directory_iterator{test_dir}) {
-        std::ifstream metadata_file(dir_entry.path() / "metadata");
+
+    for (const auto& dir_entry : std::filesystem::directory_iterator{test_dir}) {
+        if (!dir_entry.is_directory()) {
+            continue;
+        }
+
+        auto metadata_path = dir_entry.path() / "metadata";
+        if (!std::filesystem::exists(metadata_path)) {
+            continue;
+        }
+
+        std::ifstream metadata_file(metadata_path);
+        if (!metadata_file.is_open()) {
+            continue;
+        }
+
         std::string creationDate;
-        getline(metadata_file, creationDate);
+        std::getline(metadata_file, creationDate);
 
         std::string name;
-        getline(metadata_file, name);
+        std::getline(metadata_file, name);
 
-        groups.push_back(Newsgroup(name, std::stoi(creationDate), dir_entry.path().filename()));
+        if (!creationDate.empty() && !name.empty()) {
+            groups.emplace_back(name, std::stoi(creationDate), dir_entry.path().filename());
+        }
     }
 
     return groups;
 }
+
 
 inline std::string trim(const std::string& s) {
     // Trim only spaces and tabs, not newlines
