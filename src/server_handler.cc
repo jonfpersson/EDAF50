@@ -1,7 +1,6 @@
 #include "connection.hh"
 #include "connectionclosedexception.hh"
 #include "server.hh"
-#include "server_handler.hh"
 #include "protocol.hh"
 #include "command_parser.hh"
 #include "database_disk.hh"
@@ -17,28 +16,6 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-/*
- * Read an integer from a client.
- */
-int readNumber(const std::shared_ptr<Connection>& conn)
-{
-        unsigned char byte1 = conn->read();
-        unsigned char byte2 = conn->read();
-        unsigned char byte3 = conn->read();
-        unsigned char byte4 = conn->read();
-        return (byte1 << 24) | (byte2 << 16) | (byte3 << 8) | byte4;
-}
-
-/*
- * Send a string to a client.
- */
-void writeString(const std::shared_ptr<Connection>& conn, const string& s)
-{
-        for (char c : s) {
-                conn->write(c);
-        }
-        conn->write('$');
-}
 
 Server init(int argc, char* argv[])
 {

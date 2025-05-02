@@ -2,7 +2,6 @@
 #include "article.hh"
 #include "database_ram.hh"
 #include "database_disk.hh"
-#include "server_handler.hh"
 #include "command_parser.hh"
 #include "commands.hh"
 #include "database.hh"
