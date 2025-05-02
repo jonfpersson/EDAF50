@@ -2,6 +2,10 @@
 #include <filesystem>
 #include <fstream>
 #include <istream>
+#include <algorithm>
+#include <cctype>
+#include <string>
+
 static std::string test_dir = "test";
 
 DatabaseDisk::DatabaseDisk() {
@@ -26,7 +30,7 @@ void DatabaseDisk::addNewsGroup(const Newsgroup& newsgroup){
     if (file.is_open()) {
         file << newsgroup.getCreationDate() << std::endl;
         file << newsgroup.getName() << std::endl;
-    
+
         file.close();
         //cout << "File created successfully." << endl;
     } else {
@@ -51,8 +55,8 @@ void DatabaseDisk::addArticle(std::shared_ptr<Article> article, const Newsgroup&
 
     if (file.is_open()) {
         file << article->getAuthor() << std::endl;
-        file << article->getText() << std::endl;
-    
+        file << article->getText();
+
         file.close();
         //cout << "File created successfully." << endl;
     } else {
@@ -63,7 +67,7 @@ void DatabaseDisk::addArticle(std::shared_ptr<Article> article, const Newsgroup&
 
 // detta returnerar egentligen en kopia av vectorn men men
 std::vector<Newsgroup> DatabaseDisk::getNewsGroups() {
-    std::vector<Newsgroup> groups;    
+    std::vector<Newsgroup> groups;
     for (auto const& dir_entry : std::filesystem::directory_iterator{test_dir}) {
         std::ifstream metadata_file(dir_entry.path() / "metadata");
         std::string creationDate;
@@ -75,7 +79,20 @@ std::vector<Newsgroup> DatabaseDisk::getNewsGroups() {
         groups.push_back(Newsgroup(name, std::stoi(creationDate), dir_entry.path().filename()));
     }
 
-    return groups; 
+    return groups;
+}
+
+inline std::string trim(const std::string& s) {
+    // Trim only spaces and tabs, not newlines
+    auto start = std::find_if_not(s.begin(), s.end(),
+                                  [](unsigned char c) { return c == ' ' || c == '\t'; });
+    auto end = std::find_if_not(s.rbegin(), s.rend(),
+                                [](unsigned char c) { return c == ' ' || c == '\t'; }).base();
+
+    if (start >= end)
+        return "";
+
+    return std::string(start, end);
 }
 
 
@@ -89,38 +106,46 @@ std::shared_ptr<Article> DatabaseDisk::getArticle(const std::string &groupId, co
         std::string author;
         getline(article_file, author);
 
-        std::string text;
-        getline(article_file, text);
+        std::string text((std::istreambuf_iterator<char>(article_file)),
+        std::istreambuf_iterator<char>());
         std::string id = title.substr(title.find("-") + 2);
-        //get article name from file name
         title = title.substr(0, title.find("-") - 1);
-        return std::make_shared<Article>(title, author, text, 0, id);
+
+        return std::make_shared<Article>(title, author, trim(text), 0, id);
     }
     return nullptr;
 }
 
 std::vector<std::shared_ptr<Article>> DatabaseDisk::getArticles(const std::string &groupId) {
-    std::vector<std::shared_ptr<Article>> articles;    
-    for (auto const& files : std::filesystem::directory_iterator{test_dir + "/" + groupId}) {
+    std::vector<std::shared_ptr<Article>> articles;
+
+    for (const auto& files : std::filesystem::directory_iterator{test_dir + "/" + groupId}) {
         std::ifstream article_file(files.path());
+        if (!article_file.is_open()) continue;
+
         std::string author;
-        getline(article_file, author);
+        std::getline(article_file, author);
 
-        std::string text;
-        getline(article_file, text);
+        // Read the rest of the file into `text`
+        std::string text((std::istreambuf_iterator<char>(article_file)),
+                         std::istreambuf_iterator<char>());
 
+                         std::cout << text << std::endl;
         std::string title = files.path().filename();
-        if(title.find("-") == std::string::npos){
+        if (title.find("-") == std::string::npos) {
             continue;
         }
-        std::string id = title.substr(title.find("-") + 1);
-        
-        articles.push_back(std::make_shared<Article>(title, author, text, 0, id));
 
+        std::string id = title.substr(title.find("-") + 2);
+        title = title.substr(0, title.find("-") - 1);
+
+
+        articles.push_back(std::make_shared<Article>(title, author, trim(text), 0, id));
     }
-        
+
     return articles;
 }
+
 
 bool DatabaseDisk::deleteArticle(std::string &newsgroup, const std::string &articleId){
     std::string dir_name = test_dir + "/" + newsgroup;
