@@ -4,6 +4,7 @@
 #include "protocol.hh"
 #include "command_parser.hh"
 #include "database_disk.hh"
+#include "database_ram.hh"
 
 #include <cstdlib>
 #include <iostream>
@@ -11,36 +12,40 @@
 #include <stdexcept>
 #include <string>
 
-using std::string;
-using std::cout;
 using std::cerr;
+using std::cout;
 using std::endl;
+using std::string;
 
-
-Server init(int argc, char* argv[])
+Server init(int argc, char *argv[])
 {
-        if (argc != 2) {
+        if (argc != 2)
+        {
                 cerr << "Usage: myserver port-number" << endl;
                 exit(1);
         }
 
         int port = -1;
-        try {
+        try
+        {
                 port = std::stoi(argv[1]);
-        } catch (std::exception& e) {
+        }
+        catch (std::exception &e)
+        {
                 cerr << "Wrong format for port number. " << e.what() << endl;
                 exit(2);
         }
 
         Server server(port);
-        if (!server.isReady()) {
+        if (!server.isReady())
+        {
                 cerr << "Server initialization error." << endl;
                 exit(3);
         }
         return server;
 }
 
-void process_request(std::shared_ptr<Connection>& conn, Database& db)
+void process_request(std::shared_ptr<Connection> &conn, Database &db)
 {
         MessageHandler messageHandler(conn);
 
@@ -48,44 +53,51 @@ void process_request(std::shared_ptr<Connection>& conn, Database& db)
 
         unsigned char byte = conn->read();
         command_string.push_back((Protocol)byte);
-    //for(Protocol p : tokenized_string){
-    std::cout << (int)byte << std::endl;
+        std::cout << (int)byte << std::endl;
 
-    //}
 
-        if(byte == (char) Protocol::COM_END){
+        if (byte == (char)Protocol::COM_END)
+        {
                 CommandParser parser;
 
                 parser.parse(command_string)->execute(db, messageHandler);
                 command_string.clear();
-
         }
-
 }
 
-void start(Server& server)
+void start(Server &server, Database& db)
 {
-        DatabaseDisk db;
-        auto conn = server.waitForActivity();
-        if (conn != nullptr) {
-                try {
-                    process_request(conn, db);
-                } catch (ConnectionClosedException&) {
-                        server.deregisterConnection(conn);
-                        cout << "Client closed connection" << endl;
+        while (true)
+        {
+                auto conn = server.waitForActivity();
+                if (conn != nullptr)
+                {
+                        try
+                        {
+                                process_request(conn, db);
+                        }
+                        catch (ConnectionClosedException &)
+                        {
+                                server.deregisterConnection(conn);
+                                cout << "Client closed connection" << endl;
+                        }
                 }
-        } else {
-                conn = std::make_shared<Connection>();
-                server.registerConnection(conn);
-                cout << "New client connects" << endl;
+                else
+                {
+                        conn = std::make_shared<Connection>();
+                        server.registerConnection(conn);
+                        cout << "New client connects" << endl;
+                }
         }
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
         auto server = init(argc, argv);
-        while (true) {
-                start(server);
-        }
+        DatabaseRam db_ram;
+        DatabaseDisk db_disk;
+        
+        start(server, db_ram);
+
         return 0;
 }
