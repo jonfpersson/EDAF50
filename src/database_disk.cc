@@ -36,8 +36,6 @@ void DatabaseDisk::addNewsGroup(const Newsgroup& newsgroup){
     } else {
         std::cout << "Error in creating file!" << std::endl;
     }
-
-
 }
 
 void DatabaseDisk::addArticle(std::shared_ptr<Article> article, const Newsgroup& newsgroup){

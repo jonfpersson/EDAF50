@@ -16,10 +16,16 @@ DatabaseRam::~DatabaseRam()
 void DatabaseRam::addNewsGroup(const Newsgroup &newsgroup)
 {
     newsgroups.push_back(newsgroup);
+
+    std::sort(newsgroups.begin(), newsgroups.end(), [](const Newsgroup &a, const Newsgroup &b)
+              {
+                  return a.getCreationDate() < b.getCreationDate();
+              });
+    
 }
 
 // Handle error if the group does not exist!
-void DatabaseRam::addArticle(std::shared_ptr<Article>article, const Newsgroup &newsgroup)
+void DatabaseRam::addArticle(std::shared_ptr<Article> article, const Newsgroup &newsgroup)
 {
 
     for (auto it = newsgroups.begin(); it != newsgroups.end(); ++it)
@@ -50,18 +56,18 @@ std::vector<Newsgroup> DatabaseRam::getNewsGroups()
     return newsgroups;
 };
 
-std::shared_ptr<Article>DatabaseRam::getArticle(const std::string &newsgroupId, const std::string &articleID)
+std::shared_ptr<Article> DatabaseRam::getArticle(const std::string &newsgroupId, const std::string &articleID)
 {
 
     for (auto nit = newsgroups.begin(); nit != newsgroups.end(); ++nit)
     {
         if (nit->getId() == newsgroupId)
         {
-           
-            for (std::shared_ptr<Article>a : nit->getArticles())
+
+            for (std::shared_ptr<Article> a : nit->getArticles())
             {
                 if (a->getId() == articleID)
-                {     
+                {
                     return a;
                 }
             }

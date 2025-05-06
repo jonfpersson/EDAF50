@@ -11,6 +11,10 @@ const std::string &Newsgroup::getId() const { return id; }
 
 void Newsgroup::addArticle(std::shared_ptr<Article> article){
     articles.push_back(article);
+
+    std::sort(articles.begin(), articles.end(), [](const auto& a, const auto& b) {
+        return a->getDate() < b->getDate();  
+    });
 }
 
 std::vector<std::shared_ptr<Article>> Newsgroup::getArticles() const
