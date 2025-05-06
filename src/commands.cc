@@ -89,7 +89,10 @@ void CreateNG::execute(Database &db, MessageHandler &messageHandler)
         }
     }
     messageHandler.sendCode(Protocol::ANS_ACK);
-
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distr(1, 10000);
+    int random_number = distr(gen);
     auto now = std::chrono::system_clock::now();
     auto timestamp = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
 
