@@ -11,6 +11,17 @@
 #include <cstdint>
 #include <random>
 
+bool isUniqueNumber(int random_number, Database &db) {
+    auto&& groups = db.getNewsGroups();
+    for (auto it = groups.cbegin(); it != groups.cend(); ++it) {
+        if (it->getId() == std::to_string(random_number)) {
+            return false;  // Random number already exists
+        }
+    }
+    return true;
+}
+
+
 int readNumber(const std::vector<Protocol> &tokenized_string, int startindex)
 {
         int byte1 = static_cast<int>(tokenized_string[startindex++]);
@@ -23,6 +34,11 @@ int readNumber(const std::vector<Protocol> &tokenized_string, int startindex)
 
 ListNG::ListNG(const std::vector<Protocol> &tokenized_string)
 {
+    if (tokenized_string[0] != Protocol::COM_LIST_NG ||
+        tokenized_string.back() != Protocol::COM_END)
+    {
+        throw std::invalid_argument("Invalid command format");
+    }
 
 }
 
@@ -45,19 +61,17 @@ void ListNG::execute(Database &db, MessageHandler &messageHandler)
 }
 
 CreateNG::CreateNG(const std::vector<Protocol> &tokenized_string) {
+    size_t i = 5;
 
-    size_t i = 0;
-
-    if (tokenized_string[i++] != Protocol::COM_CREATE_NG) {
+    if (tokenized_string[0] != Protocol::COM_CREATE_NG) {
         throw std::invalid_argument("Expected COM_CREATE_NG");
     }
 
-    if (tokenized_string[i++] != Protocol::PAR_STRING) {
+    if (tokenized_string[1] != Protocol::PAR_STRING) {
         throw std::invalid_argument("Expected PAR_STRING");
     }
-    i++; //????
-    i++;
-    i++;
+    
+    
 
     int str_len = static_cast<int>(tokenized_string[i++]);
 
@@ -73,36 +87,41 @@ CreateNG::CreateNG(const std::vector<Protocol> &tokenized_string) {
 #include <chrono>
 
 
-void CreateNG::execute(Database &db, MessageHandler &messageHandler)
-{
+void CreateNG::execute(Database &db, MessageHandler &messageHandler) {
     messageHandler.sendCode(Protocol::ANS_CREATE_NG);
     auto&& groups = db.getNewsGroups();
-    for(auto it = groups.cbegin(); it != groups.cend(); ++it)
-    {
+
+    for (auto it = groups.cbegin(); it != groups.cend(); ++it) {
         const Newsgroup &ng = *it;
-        if(ng.getName() == name)
-        {
+        if (ng.getName() == name) {
             messageHandler.sendCode(Protocol::ANS_NAK);
             messageHandler.sendCode(Protocol::ERR_NG_ALREADY_EXISTS);
             messageHandler.sendCode(Protocol::ANS_END);
             return;
         }
     }
+
+    int random_number;
+    do {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> distr(1, 10000);
+        random_number = distr(gen);
+    } while (!isUniqueNumber(random_number, db));
     messageHandler.sendCode(Protocol::ANS_ACK);
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> distr(1, 10000);
-    int random_number = distr(gen);
     auto now = std::chrono::system_clock::now();
     auto timestamp = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
-    
-    db.addNewsGroup(Newsgroup(name, std::time(nullptr), std::to_string(random_number)));
+ 
+    db.addNewsGroup(Newsgroup(name, timestamp, std::to_string(random_number)));
     messageHandler.sendCode(Protocol::ANS_END);
-
 }
 
 DeleteNG::DeleteNG(const std::vector<Protocol> &tokenized_string) {
-
+    if (tokenized_string[0] != Protocol::COM_DELETE_NG ||
+        tokenized_string.back() != Protocol::COM_END)
+    {
+        throw std::invalid_argument("Invalid command format");
+    }
     id = std::to_string(readNumber(tokenized_string, 2));
 }
 
@@ -137,6 +156,11 @@ void Invalid::execute(Database &db, MessageHandler &messageHandler)
 }
 
 ListArticles::ListArticles(const std::vector<Protocol> &tokenized_string) {
+    if (tokenized_string[0] != Protocol::COM_LIST_ART ||
+        tokenized_string.back() != Protocol::COM_END)
+    {
+        throw std::invalid_argument("Invalid command format");
+    }
     group_id = std::to_string(readNumber(tokenized_string, 2));
 }
 
@@ -184,8 +208,7 @@ std::string CreateArticle::extractString(const std::vector<Protocol>& tokens, si
 
 CreateArticle::CreateArticle(const std::vector<Protocol> &tokenized_string)
 {
-    if (tokenized_string.size() < 13 ||
-        tokenized_string[0] != Protocol::COM_CREATE_ART ||
+    if (tokenized_string[0] != Protocol::COM_CREATE_ART ||
         tokenized_string[1] != Protocol::PAR_NUM ||
         tokenized_string.back() != Protocol::COM_END)
     {
@@ -222,10 +245,13 @@ CreateArticle::CreateArticle(const std::vector<Protocol> &tokenized_string)
 
 void CreateArticle::execute(Database &db, MessageHandler &messageHandler)
 {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> distr(1, 10000);
-    int random_number = distr(gen);
+    int random_number;
+    do {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> distr(1, 10000);
+        random_number = distr(gen);
+    } while (!isUniqueNumber(random_number, db));
 
     auto now = std::chrono::system_clock::now();
     auto timestamp = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
