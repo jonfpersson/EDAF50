@@ -40,6 +40,13 @@ string readString(const Connection &conn)
         return s;
 }
 
+// This function is used to clear the input stream
+void reset_input_stream(std::istream &in)
+{
+        in.clear();                                                   // clear the error flags
+        in.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // ignore the rest of the line
+}
+
 /* Creates a client for the given args, if possible.
  * Otherwise exits with error code.
  */
@@ -113,21 +120,22 @@ void list_newsgroups(MessageHandler &messageHandler)
         int nbrOfNewsgroups = messageHandler.recvIntParameter();
 
         cout << "______________Newsgroups______________" << endl;
-        cout <<"Number of newsgroups: " << nbrOfNewsgroups << endl;
+        cout << "Number of newsgroups: " << nbrOfNewsgroups << endl;
 
         for (int i = 0; i < nbrOfNewsgroups; i++)
         {
-                messageHandler.recvIntParameter();
+                int newsgroup_id = messageHandler.recvIntParameter();
                 string newsgroup_title = messageHandler.recvStringParameter();
-                // string newsgroup_id = messageHandler.recvStringParameter();
-                cout << newsgroup_title << endl;
+
+                cout << "Newsgroup id: " << newsgroup_id << " ||" << " Newsgroup title: " << newsgroup_title << endl;
         }
         cout << "______________NewsgroupsEnd______________" << endl;
+
+        messageHandler.recvCode();
 }
 
 void create_newsgroup(MessageHandler &messageHandler)
 {
-
         string newsgroupName;
         cout << "Enter the name of the newsgroup: ";
         cin >> newsgroupName;
@@ -154,11 +162,25 @@ void create_newsgroup(MessageHandler &messageHandler)
         messageHandler.recvCode();
 }
 
+bool getValidatedInput(int &input, std::istream &in)
+{
+        if (!(in >> input))
+        {
+                cerr << "ERROR: Invalid numeric input" << endl;
+                reset_input_stream(cin);
+                return false;
+        }
+        return true;
+}
+
 void delete_newsgroup(MessageHandler &messageHandler)
 {
         int newsgroup_id;
         cout << "Enter the id of the newsgroup you wish to delete: " << endl;
-        cin >> newsgroup_id;
+
+        if(!getValidatedInput(newsgroup_id, cin)){
+                return;
+        }
 
         messageHandler.sendCode(Protocol::COM_DELETE_NG);
         messageHandler.sendIntParameter(newsgroup_id);
@@ -176,7 +198,7 @@ void delete_newsgroup(MessageHandler &messageHandler)
         else if (code == Protocol::ANS_NAK)
         {
                 messageHandler.recvCode();
-                cout << "Error: Newsgroup name exists... " << endl;
+                cout << "Error: Newsgroup does not exist... " << endl;
         }
 
         messageHandler.recvCode();
@@ -184,12 +206,18 @@ void delete_newsgroup(MessageHandler &messageHandler)
 
 void list_articles(MessageHandler &messageHandler)
 {
-        string group_id;
+        int group_id;
         cout << "Enter the id of the group you wish to list the articles for: " << endl;
-        cin >> group_id;
+        
+        if(!getValidatedInput(group_id, cin)){
+                return;
+        }
+
+        messageHandler.sendCode(Protocol::COM_LIST_ART);
+        messageHandler.sendIntParameter(group_id);
+        messageHandler.sendCode(Protocol::COM_END);
 
         // Await response
-
         messageHandler.recvCode();
         int code = messageHandler.recvCode();
 
@@ -198,12 +226,12 @@ void list_articles(MessageHandler &messageHandler)
                 int nbrOfArticles = messageHandler.recvIntParameter();
 
                 cout << "__________ARTICLES__________" << endl;
+                cout << "Number of articles: " << nbrOfArticles << endl;
                 for (int i = 0; i < nbrOfArticles; i++)
                 {
                         int article_id = messageHandler.recvIntParameter();
                         string article_title = messageHandler.recvStringParameter();
-                        cout << "Article id: " << article_id;
-                        cout << "Article title: " << article_title;
+                        cout << "Article id: " << article_id << " || " << "Article title: " << article_title << endl;
                         cout << endl;
                 }
                 cout << "__________ARTICLES_END__________" << endl;
@@ -225,6 +253,10 @@ void create_article(MessageHandler &messageHandler)
         cout << "Enter the ID of the group in which you would like to add the article" << endl;
         cin >> group_id;
 
+        if(!getValidatedInput(group_id, cin)){
+                return;
+        }
+
         cout << "Enter the title of the article:" << endl;
         cin >> title;
 
@@ -232,7 +264,20 @@ void create_article(MessageHandler &messageHandler)
         cin >> author;
 
         cout << "Enter article text:" << endl;
-        cin >> text;
+        // cin >> text;
+
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear input buffer
+
+        while (true)
+        {
+                string line;
+                std::getline(cin, line);
+                if (line.empty())
+                {
+                        break;
+                }
+                text += line + "\n";
+        }
 
         messageHandler.sendCode(Protocol::COM_CREATE_ART);
         messageHandler.sendIntParameter(group_id);
@@ -269,13 +314,18 @@ void delete_article(MessageHandler &messageHandler)
         cout << "Enter the ID of the article:" << endl;
         cin >> article_id;
 
+        messageHandler.sendCode(Protocol::COM_DELETE_ART);
+        messageHandler.sendIntParameter(group_id);
+        messageHandler.sendIntParameter(article_id);
+        messageHandler.sendCode(Protocol::COM_END);
+
         // Await response
 
         messageHandler.recvCode();
         int code = messageHandler.recvCode();
         if (code == Protocol::ANS_ACK)
         {
-                cout << "Article has been deleted!" << endl;      
+                cout << "Article has been deleted!" << endl;
         }
         else if (code == Protocol::ANS_NAK)
         {
@@ -316,6 +366,10 @@ void get_article(MessageHandler &messageHandler)
                 title = messageHandler.recvStringParameter();
                 author = messageHandler.recvStringParameter();
                 text = messageHandler.recvStringParameter();
+
+                cout << "_____Article Title_____" << title << endl;
+                cout << "_____Article Author_____" << author << endl;
+                cout << "_____Article Text_____" << text << endl;
         }
         else if (code == Protocol::ANS_NAK)
         {
@@ -331,7 +385,7 @@ void get_article(MessageHandler &messageHandler)
 int app(MessageHandler &messageHandler)
 {
         printMenu();
-        int option;
+        unsigned int option;
         cin >> option;
 
         while (true)
@@ -367,9 +421,9 @@ int app(MessageHandler &messageHandler)
                         break;
                 default:
                         cout << "Invalid option. Please try again." << endl;
+                        reset_input_stream(cin);
                         break;
                 }
-
                 cin >> option;
         }
 
