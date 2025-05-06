@@ -61,18 +61,17 @@ void ListNG::execute(Database &db, MessageHandler &messageHandler)
 }
 
 CreateNG::CreateNG(const std::vector<Protocol> &tokenized_string) {
-    size_t i = 0;
+    size_t i = 5;
 
-    if (tokenized_string[i++] != Protocol::COM_CREATE_NG) {
+    if (tokenized_string[0] != Protocol::COM_CREATE_NG) {
         throw std::invalid_argument("Expected COM_CREATE_NG");
     }
 
-    if (tokenized_string[i++] != Protocol::PAR_STRING) {
+    if (tokenized_string[1] != Protocol::PAR_STRING) {
         throw std::invalid_argument("Expected PAR_STRING");
     }
-    i++; //????
-    i++;
-    i++;
+    
+    
 
     int str_len = static_cast<int>(tokenized_string[i++]);
 
