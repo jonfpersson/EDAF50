@@ -34,6 +34,11 @@ int readNumber(const std::vector<Protocol> &tokenized_string, int startindex)
 
 ListNG::ListNG(const std::vector<Protocol> &tokenized_string)
 {
+    if (tokenized_string[0] != Protocol::COM_LIST_NG ||
+        tokenized_string.back() != Protocol::COM_END)
+    {
+        throw std::invalid_argument("Invalid command format");
+    }
 
 }
 
@@ -56,7 +61,6 @@ void ListNG::execute(Database &db, MessageHandler &messageHandler)
 }
 
 CreateNG::CreateNG(const std::vector<Protocol> &tokenized_string) {
-
     size_t i = 0;
 
     if (tokenized_string[i++] != Protocol::COM_CREATE_NG) {
@@ -114,7 +118,11 @@ void CreateNG::execute(Database &db, MessageHandler &messageHandler) {
 }
 
 DeleteNG::DeleteNG(const std::vector<Protocol> &tokenized_string) {
-
+    if (tokenized_string[0] != Protocol::COM_DELETE_NG ||
+        tokenized_string.back() != Protocol::COM_END)
+    {
+        throw std::invalid_argument("Invalid command format");
+    }
     id = std::to_string(readNumber(tokenized_string, 2));
 }
 
@@ -149,6 +157,11 @@ void Invalid::execute(Database &db, MessageHandler &messageHandler)
 }
 
 ListArticles::ListArticles(const std::vector<Protocol> &tokenized_string) {
+    if (tokenized_string[0] != Protocol::COM_LIST_ART ||
+        tokenized_string.back() != Protocol::COM_END)
+    {
+        throw std::invalid_argument("Invalid command format");
+    }
     group_id = std::to_string(readNumber(tokenized_string, 2));
 }
 
@@ -196,8 +209,7 @@ std::string CreateArticle::extractString(const std::vector<Protocol>& tokens, si
 
 CreateArticle::CreateArticle(const std::vector<Protocol> &tokenized_string)
 {
-    if (tokenized_string.size() < 13 ||
-        tokenized_string[0] != Protocol::COM_CREATE_ART ||
+    if (tokenized_string[0] != Protocol::COM_CREATE_ART ||
         tokenized_string[1] != Protocol::PAR_NUM ||
         tokenized_string.back() != Protocol::COM_END)
     {
