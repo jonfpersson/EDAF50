@@ -11,6 +11,17 @@
 #include <cstdint>
 #include <random>
 
+bool isUniqueNumber(int random_number, Database &db) {
+    auto&& groups = db.getNewsGroups();
+    for (auto it = groups.cbegin(); it != groups.cend(); ++it) {
+        if (it->getId() == std::to_string(random_number)) {
+            return false;  // Random number already exists
+        }
+    }
+    return true;
+}
+
+
 int readNumber(const std::vector<Protocol> &tokenized_string, int startindex)
 {
         int byte1 = static_cast<int>(tokenized_string[startindex++]);
@@ -73,32 +84,33 @@ CreateNG::CreateNG(const std::vector<Protocol> &tokenized_string) {
 #include <chrono>
 
 
-void CreateNG::execute(Database &db, MessageHandler &messageHandler)
-{
+void CreateNG::execute(Database &db, MessageHandler &messageHandler) {
     messageHandler.sendCode(Protocol::ANS_CREATE_NG);
     auto&& groups = db.getNewsGroups();
-    for(auto it = groups.cbegin(); it != groups.cend(); ++it)
-    {
+
+    for (auto it = groups.cbegin(); it != groups.cend(); ++it) {
         const Newsgroup &ng = *it;
-        if(ng.getName() == name)
-        {
+        if (ng.getName() == name) {
             messageHandler.sendCode(Protocol::ANS_NAK);
             messageHandler.sendCode(Protocol::ERR_NG_ALREADY_EXISTS);
             messageHandler.sendCode(Protocol::ANS_END);
             return;
         }
     }
+
+    int random_number;
+    do {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> distr(1, 10000);
+        random_number = distr(gen);
+    } while (!isUniqueNumber(random_number, db));
     messageHandler.sendCode(Protocol::ANS_ACK);
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> distr(1, 10000);
-    int random_number = distr(gen);
     auto now = std::chrono::system_clock::now();
     auto timestamp = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
-    
-    db.addNewsGroup(Newsgroup(name, std::time(nullptr), std::to_string(random_number)));
+ 
+    db.addNewsGroup(Newsgroup(name, timestamp, std::to_string(random_number)));
     messageHandler.sendCode(Protocol::ANS_END);
-
 }
 
 DeleteNG::DeleteNG(const std::vector<Protocol> &tokenized_string) {
