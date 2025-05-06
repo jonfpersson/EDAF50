@@ -113,11 +113,13 @@ void list_newsgroups(MessageHandler &messageHandler)
         int nbrOfNewsgroups = messageHandler.recvIntParameter();
 
         cout << "______________Newsgroups______________" << endl;
+        cout <<"Number of newsgroups: " << nbrOfNewsgroups << endl;
 
         for (int i = 0; i < nbrOfNewsgroups; i++)
         {
                 messageHandler.recvIntParameter();
                 string newsgroup_title = messageHandler.recvStringParameter();
+                // string newsgroup_id = messageHandler.recvStringParameter();
                 cout << newsgroup_title << endl;
         }
         cout << "______________NewsgroupsEnd______________" << endl;
@@ -169,6 +171,7 @@ void delete_newsgroup(MessageHandler &messageHandler)
 
         if (code == Protocol::ANS_ACK)
         {
+                cout << "Newsgroup has been deleted!" << endl;
         }
         else if (code == Protocol::ANS_NAK)
         {
@@ -272,6 +275,7 @@ void delete_article(MessageHandler &messageHandler)
         int code = messageHandler.recvCode();
         if (code == Protocol::ANS_ACK)
         {
+                cout << "Article has been deleted!" << endl;      
         }
         else if (code == Protocol::ANS_NAK)
         {
