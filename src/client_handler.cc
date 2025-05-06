@@ -162,15 +162,12 @@ void create_newsgroup(MessageHandler &messageHandler)
         messageHandler.recvCode();
 }
 
-bool getValidatedInput(int &input, std::istream &in)
+void getNumericInput(int &input, std::istream &in)
 {
         if (!(in >> input))
         {
-                cerr << "ERROR: Invalid numeric input" << endl;
-                reset_input_stream(cin);
-                return false;
+                throw std::runtime_error("ERROR: Invalid numeric input");
         }
-        return true;
 }
 
 void delete_newsgroup(MessageHandler &messageHandler)
@@ -178,9 +175,7 @@ void delete_newsgroup(MessageHandler &messageHandler)
         int newsgroup_id;
         cout << "Enter the id of the newsgroup you wish to delete: " << endl;
 
-        if(!getValidatedInput(newsgroup_id, cin)){
-                return;
-        }
+        getNumericInput(newsgroup_id, cin);
 
         messageHandler.sendCode(Protocol::COM_DELETE_NG);
         messageHandler.sendIntParameter(newsgroup_id);
@@ -208,10 +203,8 @@ void list_articles(MessageHandler &messageHandler)
 {
         int group_id;
         cout << "Enter the id of the group you wish to list the articles for: " << endl;
-        
-        if(!getValidatedInput(group_id, cin)){
-                return;
-        }
+
+        getNumericInput(group_id, cin);
 
         messageHandler.sendCode(Protocol::COM_LIST_ART);
         messageHandler.sendIntParameter(group_id);
@@ -251,11 +244,8 @@ void create_article(MessageHandler &messageHandler)
         int group_id;
 
         cout << "Enter the ID of the group in which you would like to add the article" << endl;
-        cin >> group_id;
 
-        if(!getValidatedInput(group_id, cin)){
-                return;
-        }
+        getNumericInput(group_id, cin);
 
         cout << "Enter the title of the article:" << endl;
         cin >> title;
@@ -309,10 +299,10 @@ void delete_article(MessageHandler &messageHandler)
         int group_id, article_id;
 
         cout << "Enter the ID of the group which contains the article you would like to delete:" << endl;
-        cin >> group_id;
+        getNumericInput(group_id, cin);
 
         cout << "Enter the ID of the article:" << endl;
-        cin >> article_id;
+        getNumericInput(article_id, cin);
 
         messageHandler.sendCode(Protocol::COM_DELETE_ART);
         messageHandler.sendIntParameter(group_id);
@@ -345,19 +335,22 @@ void get_article(MessageHandler &messageHandler)
         int group_id, article_id;
 
         cout << "Enter the ID of the group which contains the article you would like to get:" << endl;
-        cin >> group_id;
+
+        getNumericInput(group_id, cin);
 
         cout << "Enter the ID of the article:" << endl;
-        cin >> article_id;
 
-        messageHandler.sendCode(Protocol::COM_CREATE_ART);
+        getNumericInput(article_id, cin);
+
+        messageHandler.sendCode(Protocol::COM_GET_ART);
         messageHandler.sendIntParameter(group_id);
         messageHandler.sendIntParameter(article_id);
         messageHandler.sendCode(Protocol::COM_END);
-
+        
         // Await response
 
         messageHandler.recvCode();
+
         int code = messageHandler.recvCode();
 
         if (code == Protocol::ANS_ACK)
@@ -367,9 +360,11 @@ void get_article(MessageHandler &messageHandler)
                 author = messageHandler.recvStringParameter();
                 text = messageHandler.recvStringParameter();
 
-                cout << "_____Article Title_____" << title << endl;
-                cout << "_____Article Author_____" << author << endl;
-                cout << "_____Article Text_____" << text << endl;
+                cout << "_____ARTICLE_BEGIN_____" << endl;
+                cout << "_____Article Title_____" << endl<< title << endl;
+                cout << "_____Article Author_____" << endl<< author << endl;
+                cout << "_____Article Text_____" << endl<< text << endl;
+                cout << "_____ARTICLE_END_____" << endl;
         }
         else if (code == Protocol::ANS_NAK)
         {
@@ -390,40 +385,53 @@ int app(MessageHandler &messageHandler)
 
         while (true)
         {
-                switch (option)
+                try
                 {
-                case 1:
-                        list_newsgroups(messageHandler);
-                        break;
-                case 2:
-                        create_newsgroup(messageHandler);
-                        break;
-                case 3:
-                        delete_newsgroup(messageHandler);
-                        break;
-                case 4:
-                        list_articles(messageHandler);
-                        break;
-                case 5:
-                        create_article(messageHandler);
-                        break;
-                case 6:
-                        delete_article(messageHandler);
-                        break;
-                case 7:
-                        get_article(messageHandler);
-                        break;
-                case 8:
-                        printMenu();
-                        break;
-                case 9:
-                        return 0;
-                        break;
-                default:
-                        cout << "Invalid option. Please try again." << endl;
-                        reset_input_stream(cin);
-                        break;
+                        switch (option)
+                        {
+                        case 1:
+                                list_newsgroups(messageHandler);
+                                break;
+                        case 2:
+                                create_newsgroup(messageHandler);
+                                break;
+                        case 3:
+                                delete_newsgroup(messageHandler);
+                                break;
+                        case 4:
+                                list_articles(messageHandler);
+                                break;
+                        case 5:
+                                create_article(messageHandler);
+                                break;
+                        case 6:
+                                delete_article(messageHandler);
+                                break;
+                        case 7:
+                                get_article(messageHandler);
+                                break;
+                        case 8:
+                                printMenu();
+                                break;
+                        case 9:
+                                return 0;
+                                break;
+                        default:
+                                cout << "Invalid option. Please try again." << endl;
+                                reset_input_stream(cin);
+                                break;
+                        }
                 }
+                catch (const std::exception &e)
+                {
+                        reset_input_stream(cin);
+                        cout << "Error: " << e.what() << endl;
+                }
+                catch (...)
+                {
+                        reset_input_stream(cin);
+                }
+
                 cin >> option;
         }
 
