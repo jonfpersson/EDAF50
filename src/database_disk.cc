@@ -55,6 +55,7 @@ void DatabaseDisk::addArticle(std::shared_ptr<Article> article, const Newsgroup&
 
     if (file.is_open()) {
         file << article->getAuthor() << std::endl;
+        file << article->getDate() << std::endl;
         file << article->getText();
 
         file.close();
@@ -66,6 +67,8 @@ void DatabaseDisk::addArticle(std::shared_ptr<Article> article, const Newsgroup&
 }
 
 // detta returnerar egentligen en kopia av vectorn men men
+#include <algorithm> // for std::sort
+
 std::vector<Newsgroup> DatabaseDisk::getNewsGroups() {
     std::vector<Newsgroup> groups;
 
@@ -84,19 +87,26 @@ std::vector<Newsgroup> DatabaseDisk::getNewsGroups() {
             continue;
         }
 
-        std::string creationDate;
-        std::getline(metadata_file, creationDate);
+        std::string creationDateStr;
+        std::getline(metadata_file, creationDateStr);
 
         std::string name;
         std::getline(metadata_file, name);
 
-        if (!creationDate.empty() && !name.empty()) {
-            groups.emplace_back(name, std::stoi(creationDate), dir_entry.path().filename());
+        if (!creationDateStr.empty() && !name.empty()) {
+            int creationDate = std::stoll(creationDateStr);
+            groups.emplace_back(name, creationDate, dir_entry.path().filename());
         }
     }
 
+    // Sort by creationDate (assuming it's an int and the second parameter in Newsgroup)
+    std::sort(groups.begin(), groups.end(), [](const Newsgroup& a, const Newsgroup& b) {
+        return a.getCreationDate() < b.getCreationDate(); // Replace with your actual accessor
+    });
+
     return groups;
 }
+
 
 
 inline std::string trim(const std::string& s) {
@@ -122,13 +132,15 @@ std::shared_ptr<Article> DatabaseDisk::getArticle(const std::string &groupId, co
         std::ifstream article_file(files.path());
         std::string author;
         getline(article_file, author);
+        std::string date;
+        std::getline(article_file, date);
 
         std::string text((std::istreambuf_iterator<char>(article_file)),
         std::istreambuf_iterator<char>());
         std::string id = title.substr(title.find("-") + 2);
         title = title.substr(0, title.find("-") - 1);
 
-        return std::make_shared<Article>(title, author, trim(text), 0, id);
+        return std::make_shared<Article>(title, author, trim(text), std::stoll(date), id);
     }
     return nullptr;
 }
@@ -143,11 +155,12 @@ std::vector<std::shared_ptr<Article>> DatabaseDisk::getArticles(const std::strin
         std::string author;
         std::getline(article_file, author);
 
-        // Read the rest of the file into `text`
+        std::string date;
+        std::getline(article_file, date);
+
         std::string text((std::istreambuf_iterator<char>(article_file)),
                          std::istreambuf_iterator<char>());
 
-                         std::cout << text << std::endl;
         std::string title = files.path().filename();
         if (title.find("-") == std::string::npos) {
             continue;
@@ -156,12 +169,17 @@ std::vector<std::shared_ptr<Article>> DatabaseDisk::getArticles(const std::strin
         std::string id = title.substr(title.find("-") + 2);
         title = title.substr(0, title.find("-") - 1);
 
-
-        articles.push_back(std::make_shared<Article>(title, author, trim(text), 0, id));
+        articles.push_back(std::make_shared<Article>(title, author, trim(text), std::stoll(date), id));
     }
+
+    // Sort articles by date (assumed to be a member of Article)
+    std::sort(articles.begin(), articles.end(), [](const auto& a, const auto& b) {
+        return a->getDate() < b->getDate();  // Replace getDate() with the correct accessor if different
+    });
 
     return articles;
 }
+
 
 
 bool DatabaseDisk::deleteArticle(std::string &newsgroup, const std::string &articleId){

@@ -70,6 +70,8 @@ CreateNG::CreateNG(const std::vector<Protocol> &tokenized_string) {
     name = extracted_name;
 
 }
+#include <chrono>
+
 
 void CreateNG::execute(Database &db, MessageHandler &messageHandler)
 {
@@ -87,6 +89,9 @@ void CreateNG::execute(Database &db, MessageHandler &messageHandler)
         }
     }
     messageHandler.sendCode(Protocol::ANS_ACK);
+
+    auto now = std::chrono::system_clock::now();
+    auto timestamp = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
 
     std::random_device rd;
      std::mt19937 gen(rd());
@@ -223,6 +228,11 @@ void CreateArticle::execute(Database &db, MessageHandler &messageHandler)
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> distr(1, 10000);
     int random_number = distr(gen);
+
+    auto now = std::chrono::system_clock::now();
+    auto timestamp = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
+
+
     messageHandler.sendCode(Protocol::ANS_CREATE_ART);
     auto&& groups = db.getNewsGroups();
     for(auto it = groups.cbegin(); it != groups.cend(); ++it)
@@ -232,7 +242,7 @@ void CreateArticle::execute(Database &db, MessageHandler &messageHandler)
         if(ng.getId() == group_id)
         {
             messageHandler.sendCode(Protocol::ANS_ACK);
-            auto article = std::make_shared<Article>(title, author, text, std::time(nullptr), std::to_string(random_number));
+            auto article = std::make_shared<Article>(title, author, text, timestamp, std::to_string(random_number));
             db.addArticle(article, ng);
             messageHandler.sendCode(Protocol::ANS_END);
             return;
