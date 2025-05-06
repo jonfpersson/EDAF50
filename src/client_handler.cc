@@ -116,6 +116,7 @@ void list_newsgroups(MessageHandler &messageHandler)
 
         for (int i = 0; i < nbrOfNewsgroups; i++)
         {
+                messageHandler.recvIntParameter();
                 string newsgroup_title = messageHandler.recvStringParameter();
                 cout << newsgroup_title << endl;
         }

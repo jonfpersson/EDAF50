@@ -45,23 +45,35 @@ Server init(int argc, char *argv[])
         return server;
 }
 
+
 void process_request(std::shared_ptr<Connection> &conn, Database &db)
 {
-        MessageHandler messageHandler(conn);
-
         static std::vector<Protocol> command_string;
-
+        static int remaining = 0;
+        MessageHandler messageHandler(conn);
         unsigned char byte = conn->read();
         command_string.push_back((Protocol)byte);
-        std::cout << (int)byte << std::endl;
+        std::cout << "Read byte: " << (int)byte << std::endl;
 
+        if (remaining > 0) {
+        remaining--;
+        return;
+        }
 
-        if (byte == (char)Protocol::COM_END)
-        {
-                CommandParser parser;
-
-                parser.parse(command_string)->execute(db, messageHandler);
-                command_string.clear();
+        //if this is a PAR_STRING, the next byte is the length
+        if (byte == (int)Protocol::PAR_STRING) {
+        remaining = -1; //next byte will tell us how many characters to read
+        }
+        else if (remaining == -1) {
+        remaining = byte; // byte is the length of the string
+        }
+        else if (byte == (int)Protocol::PAR_NUM) {
+        remaining = 4; //one byte of number data will follow
+        }
+        else if (byte == (int)Protocol::COM_END) {
+        CommandParser parser;
+        parser.parse(command_string)->execute(db, messageHandler);
+        command_string.clear();
         }
 }
 
@@ -97,7 +109,7 @@ int main(int argc, char *argv[])
         DatabaseRam db_ram;
         DatabaseDisk db_disk;
         
-        start(server, db_ram);
+        start(server, db_disk);
 
         return 0;
 }
