@@ -5,18 +5,18 @@
 #include <algorithm>
 #include <cctype>
 #include <string>
+#include "connectionclosedexception.hh"
 
-static std::string test_dir = "test";
+static std::string test_dir = "database_files";
 
 DatabaseDisk::DatabaseDisk() {
+    std::filesystem::create_directory(test_dir);
 }
 
 DatabaseDisk::~DatabaseDisk() {
 }
 
 void DatabaseDisk::addNewsGroup(const Newsgroup& newsgroup){
-    std::string test_dir = "test";
-    std::filesystem::create_directory(test_dir);
     std::string dir_name = test_dir + "/" + newsgroup.getId();
    /* if(std::filesystem::exists(dir_name)){
         std::cout << "Newsgroup already exists!" << std::endl;
@@ -148,6 +148,12 @@ std::shared_ptr<Article> DatabaseDisk::getArticle(const std::string &groupId, co
 std::vector<std::shared_ptr<Article>> DatabaseDisk::getArticles(const std::string &groupId) {
     std::vector<std::shared_ptr<Article>> articles;
 
+    
+    if (!std::filesystem::exists(test_dir + "/" + groupId)) {
+        return articles;
+        std::cout << "No such group exists" << std::endl;
+    }
+    
     for (const auto& files : std::filesystem::directory_iterator{test_dir + "/" + groupId}) {
         std::ifstream article_file(files.path());
         if (!article_file.is_open()) continue;
@@ -179,8 +185,6 @@ std::vector<std::shared_ptr<Article>> DatabaseDisk::getArticles(const std::strin
 
     return articles;
 }
-
-
 
 bool DatabaseDisk::deleteArticle(std::string &newsgroup, const std::string &articleId){
     std::string dir_name = test_dir + "/" + newsgroup;
