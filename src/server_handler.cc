@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
         DatabaseRam db_ram;
         DatabaseDisk db_disk;
 
-        start(server, db_disk);
+        start(server, db_ram);
 
         return 0;
 }
