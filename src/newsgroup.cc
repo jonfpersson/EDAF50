@@ -1,6 +1,7 @@
 
 #include "newsgroup.hh"
 #include "article.hh"
+#include <algorithm>
 
 
 Newsgroup::Newsgroup(const std::string &name, const std::time_t creationDate, const std::string &id) : name{name}, creationDate{creationDate}, id{id} {}
@@ -13,7 +14,7 @@ void Newsgroup::addArticle(std::shared_ptr<Article> article){
     articles.push_back(article);
 
     std::sort(articles.begin(), articles.end(), [](const auto& a, const auto& b) {
-        return a->getDate() < b->getDate();  
+        return a->getDate() < b->getDate();
     });
 }
 
@@ -49,7 +50,7 @@ std::shared_ptr<Article>Newsgroup::getArticle(const std::string &articleId) cons
 
 
 bool Newsgroup::operator<(const Newsgroup &other) const
-{  
+{
     if (creationDate != other.getCreationDate())
         return creationDate < other.getCreationDate();
     return id < other.getId();

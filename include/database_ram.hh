@@ -10,13 +10,14 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <algorithm>
 
 class DatabaseRam : public Database
 {
 
 public:
-    DatabaseRam(); 
-    ~DatabaseRam(); 
+    DatabaseRam();
+    ~DatabaseRam();
     void addNewsGroup(const Newsgroup &) override;
     void addArticle(std::shared_ptr<Article> article, const Newsgroup& newsgroup) override;
     std::vector<Newsgroup> getNewsGroups() override;
@@ -26,7 +27,7 @@ public:
     bool removeNewsGroup(const std::string &groupId) override;
 
 private:
-    std::vector<Newsgroup> newsgroups; 
+    std::vector<Newsgroup> newsgroups;
 };
 
 #endif

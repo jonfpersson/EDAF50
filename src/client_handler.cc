@@ -9,6 +9,7 @@
 #include <vector>
 #include "message_handler.hh"
 #include <memory>
+#include <limits>
 
 using std::cerr;
 using std::cin;
@@ -346,7 +347,7 @@ void get_article(MessageHandler &messageHandler)
         messageHandler.sendIntParameter(group_id);
         messageHandler.sendIntParameter(article_id);
         messageHandler.sendCode(Protocol::COM_END);
-        
+
         // Await response
 
         messageHandler.recvCode();
